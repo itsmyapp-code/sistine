@@ -67,7 +67,7 @@ export default function ReviewsPage() {
           Client Reviews
         </h1>
         <p className="text-base sm:text-lg text-slate-600 font-light leading-relaxed">
-          Read what local homeowners across Dartmouth, Kingswear, and the South Hams have to say about our decorating work.
+          Read what local homeowners across Dartmouth and the South Hams have to say about our decorating work.
         </p>
       </div>
 

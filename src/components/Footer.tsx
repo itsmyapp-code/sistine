@@ -39,7 +39,7 @@ export default function Footer() {
             
             <div className="pt-2 text-xs text-slate-400">
               <p className="font-semibold text-slate-200">Coverage:</p>
-              <p>Dartmouth, Kingswear, Stoke Fleming &amp; South Hams</p>
+              <p>Dartmouth &amp; South Hams</p>
             </div>
           </div>
 

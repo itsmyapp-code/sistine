@@ -60,7 +60,7 @@ export default function HomePage() {
             </h2>
             <div className="text-base sm:text-lg text-slate-600 space-y-4 leading-relaxed font-normal">
               <p>
-                Based at <strong>15 Southtown in Dartmouth</strong>, Sistine Decorating provides professional interior and exterior painting services for homeowners, holiday cottages, and residential properties across Dartmouth, Kingswear, Stoke Fleming, and the wider South Hams.
+                Based at <strong>15 Southtown in Dartmouth</strong>, Sistine Decorating provides professional interior and exterior painting services for homeowners, holiday cottages, and residential properties across Dartmouth and the wider South Hams.
               </p>
               <p>
                 We believe that good decorating is built on thorough preparation, attention to detail, and a tidy, respectful way of working in your home. Whether refreshing a single room, wallpapering a feature wall, or repainting an entire coastal facade, we deliver clean, lasting results.

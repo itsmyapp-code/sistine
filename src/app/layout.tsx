@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     default: "Sistine Decorating | Painters & Decorators Dartmouth, Devon",
     template: "%s | Sistine Decorating",
   },
-  description: "Professional painting and decorating in Dartmouth, Kingswear, Stoke Fleming & the South Hams. Interior and exterior residential decorating with quality finishes.",
+  description: "Professional painting and decorating in Dartmouth and the wider South Hams. Interior and exterior residential decorating with quality finishes.",
   keywords: [
     "painter and decorator Dartmouth",
     "Sistine Decorating Dartmouth",
     "painting Southtown Dartmouth",
-    "interior painters Kingswear",
+    "interior painters Dartmouth",
     "exterior decorating South Devon",
     "wallpapering Dartmouth"
   ],
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   publisher: "developer.itsmyapp.co.uk",
   openGraph: {
     title: "Sistine Decorating | Dartmouth & South Devon",
-    description: "Quality residential painting and decorating services across Dartmouth, Kingswear and the South Hams.",
+    description: "Quality residential painting and decorating services across Dartmouth and the wider South Hams.",
     type: "website",
     locale: "en_GB",
     siteName: "Sistine Decorating",

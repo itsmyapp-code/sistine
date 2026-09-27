@@ -18,11 +18,7 @@ export const BUSINESS_CONFIG = {
   facebookHandle: 'sistinedecoration',
   coverageAreas: [
     'Dartmouth',
-    'Kingswear',
-    'Stoke Fleming',
-    'Dittisham',
-    'Blackawton',
-    'Totnes & South Hams'
+    'South Hams'
   ],
   workingHours: 'Monday – Friday: 08:00 – 17:30 | Saturday: By Appointment',
   insuranceCoverage: 'Fully Insured Public Liability',

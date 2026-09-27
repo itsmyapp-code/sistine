@@ -65,7 +65,7 @@ export default function ContactPage() {
           Contact Sistine Decorating
         </h1>
         <p className="text-base sm:text-lg text-slate-600 font-light leading-relaxed">
-          For all painting and decorating inquiries across Dartmouth, Kingswear, and the South Hams. We are happy to arrange a convenient time to visit and view your property.
+          For all painting and decorating inquiries across Dartmouth and the wider South Hams. We are happy to arrange a convenient time to visit and view your property.
         </p>
       </div>
 
@@ -150,8 +150,10 @@ export default function ContactPage() {
 
               {/* Facebook / Messenger */}
               <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-xl bg-blue-50 text-blue-700 shrink-0">
-                  <MessageSquare className="w-5 h-5" />
+                <div className="p-2.5 rounded-xl bg-[#1877F2]/10 text-[#1877F2] shrink-0">
+                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 font-medium uppercase">Facebook</p>
@@ -159,7 +161,7 @@ export default function ContactPage() {
                     href={BUSINESS_CONFIG.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-base font-semibold text-blue-800 hover:underline inline-flex items-center gap-1.5"
+                    className="text-base font-semibold text-[#1877F2] hover:underline inline-flex items-center gap-1.5"
                   >
                     <span>{BUSINESS_CONFIG.facebookHandle}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -171,7 +173,7 @@ export default function ContactPage() {
 
             <div className="pt-4 border-t border-slate-100 text-xs text-slate-500">
               <p className="font-semibold text-slate-800">Areas Covered:</p>
-              <p className="mt-1">Dartmouth, Kingswear, Stoke Fleming, Dittisham, Blackawton &amp; South Hams.</p>
+              <p className="mt-1">Dartmouth &amp; South Hams.</p>
             </div>
           </div>
 
