@@ -15,27 +15,6 @@
     "publishedAt": "2026-09-27"
   },
   {
-    "id": "proj-ext-1",
-    "slug": "exterior-paint-job-dartmouth",
-    "title": "Exterior Paint Job",
-    "category": "Exterior",
-    "location": "Dartmouth",
-    "afterImage": "/images/hero/sistine-exterior-facade.jpg",
-    "beforeImage": "/images/hero/sistine-painter-dartmouth.jpg",
-    "images": [
-      "/images/hero/sistine-exterior-facade.jpg",
-      "/images/hero/sistine-painter-dartmouth.jpg"
-    ],
-    "description": "Exterior jet washed and painted. Windows, facias and guttering all cleaned down with upvc antifungal cleaner. Looks brand new. Completed to highest trade standard.",
-    "scopeDetails": [
-      "Pressure jet wash and antifungal cleaning",
-      "Full masonry prep & microporous exterior paint",
-      "Windows, fascias and rainwater guttering restored"
-    ],
-    "featured": true,
-    "publishedAt": "2026-09-20"
-  },
-  {
     "id": "proj-int-1",
     "slug": "interior-painting-job-dartmouth",
     "title": "Interior Painting Job",
