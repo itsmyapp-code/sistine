@@ -12,8 +12,8 @@ export const BUSINESS_CONFIG = {
   dataPrivacyLeadEmail: 'sistine@live.co.uk',
   address: '15 Southtown, Dartmouth, Devon, TQ6 9BX',
   postcode: 'TQ6 9BX',
-  facebook: 'https://facebook.com/Sistine',
-  facebookHandle: 'Sistine',
+  facebook: 'https://www.facebook.com/sistinedecoration',
+  facebookHandle: 'sistinedecoration',
   coverageAreas: [
     'Dartmouth',
     'Kingswear',
