@@ -3,9 +3,43 @@
 import { Project, Testimonial, HeroSlide } from '@/types';
 import { INITIAL_PROJECTS, INITIAL_TESTIMONIALS, INITIAL_HERO_SLIDES } from '@/data/initialData';
 
-const PROJECTS_STORAGE_KEY = 'apex_projects_data_v1';
-const TESTIMONIALS_STORAGE_KEY = 'apex_testimonials_data_v1';
-const HERO_SLIDES_STORAGE_KEY = 'apex_hero_slides_data_v1';
+const PROJECTS_STORAGE_KEY = 'apex_projects_data_v2';
+const TESTIMONIALS_STORAGE_KEY = 'apex_testimonials_data_v2';
+const HERO_SLIDES_STORAGE_KEY = 'apex_hero_slides_data_v2';
+const GITHUB_TOKEN_STORAGE_KEY = 'sistine_github_token';
+
+export function getGitHubToken(): string {
+  if (typeof window === 'undefined') return '';
+  return localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || sessionStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '';
+}
+
+export function saveGitHubToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  if (token) {
+    localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, token);
+  } else {
+    localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);
+  }
+}
+
+export async function syncDataToOnline(type: 'projects' | 'hero' | 'testimonials', data: any[]) {
+  try {
+    const token = getGitHubToken();
+    const res = await fetch('/api/cms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type,
+        data,
+        githubToken: token,
+      }),
+    });
+    return await res.json();
+  } catch (err) {
+    console.warn('Online sync failed:', err);
+    return { success: false, error: err };
+  }
+}
 
 export function getStoredHeroSlides(): HeroSlide[] {
   if (typeof window === 'undefined') return INITIAL_HERO_SLIDES;
@@ -27,6 +61,8 @@ export function saveStoredHeroSlides(slides: HeroSlide[]): void {
   try {
     localStorage.setItem(HERO_SLIDES_STORAGE_KEY, JSON.stringify(slides));
     window.dispatchEvent(new Event('apex_data_updated'));
+    // Trigger online sync in background
+    syncDataToOnline('hero', slides);
   } catch (e) {
     console.error('Error saving hero slides to storage', e);
   }
@@ -52,6 +88,8 @@ export function saveStoredProjects(projects: Project[]): void {
   try {
     localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
     window.dispatchEvent(new Event('apex_data_updated'));
+    // Trigger online sync in background
+    syncDataToOnline('projects', projects);
   } catch (e) {
     console.error('Error saving projects to storage', e);
   }
@@ -77,6 +115,8 @@ export function saveStoredTestimonials(testimonials: Testimonial[]): void {
   try {
     localStorage.setItem(TESTIMONIALS_STORAGE_KEY, JSON.stringify(testimonials));
     window.dispatchEvent(new Event('apex_data_updated'));
+    // Trigger online sync in background
+    syncDataToOnline('testimonials', testimonials);
   } catch (e) {
     console.error('Error saving testimonials to storage', e);
   }
@@ -88,4 +128,8 @@ export function resetToDefaults(): void {
   localStorage.setItem(TESTIMONIALS_STORAGE_KEY, JSON.stringify(INITIAL_TESTIMONIALS));
   localStorage.setItem(HERO_SLIDES_STORAGE_KEY, JSON.stringify(INITIAL_HERO_SLIDES));
   window.dispatchEvent(new Event('apex_data_updated'));
+  syncDataToOnline('projects', INITIAL_PROJECTS);
+  syncDataToOnline('hero', INITIAL_HERO_SLIDES);
+  syncDataToOnline('testimonials', INITIAL_TESTIMONIALS);
 }
+

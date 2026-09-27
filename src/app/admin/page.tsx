@@ -20,7 +20,11 @@ import {
   Image as ImageIcon,
   Sliders,
   Layers,
-  Sparkles
+  Sparkles,
+  Cloud,
+  RefreshCw,
+  Globe,
+  Key
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { Project, Testimonial, ProjectCategory, HeroSlide } from '@/types';
@@ -31,7 +35,10 @@ import {
   saveStoredTestimonials,
   getStoredHeroSlides,
   saveStoredHeroSlides,
-  resetToDefaults 
+  resetToDefaults,
+  getGitHubToken,
+  saveGitHubToken,
+  syncDataToOnline
 } from '@/lib/storage';
 
 const DEFAULT_PIN = '1234';
@@ -103,6 +110,13 @@ export default function AdminPage() {
   const [testReviewText, setTestReviewText] = useState('');
   const [testSuccessMsg, setTestSuccessMsg] = useState('');
 
+  // GitHub Online Sync State
+  const [githubToken, setGithubToken] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
+  const [showTokenSettings, setShowTokenSettings] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ msg: string; type: 'success' | 'error' | 'info' | '' }>({ msg: '', type: '' });
+  const [isSyncingAll, setIsSyncingAll] = useState(false);
+
   const projectFormRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -123,8 +137,54 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAuthenticated) {
       loadAllData();
+      const saved = getGitHubToken();
+      setGithubToken(saved);
+      setTokenInput(saved);
     }
   }, [isAuthenticated]);
+
+  const handleSaveGithubToken = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanToken = tokenInput.trim();
+    saveGitHubToken(cleanToken);
+    setGithubToken(cleanToken);
+    setSyncStatus({
+      msg: cleanToken ? '✓ GitHub Token saved securely. Live commits enabled.' : 'GitHub Token cleared.',
+      type: 'success'
+    });
+    setShowTokenSettings(false);
+  };
+
+  const handleSyncAllToGitHub = async () => {
+    setIsSyncingAll(true);
+    setSyncStatus({ msg: 'Syncing all projects, hero slides & reviews to GitHub repository (itsmyapp-code/sistine)...', type: 'info' });
+    try {
+      const pRes = await syncDataToOnline('projects', projects);
+      const hRes = await syncDataToOnline('hero', heroSlides);
+      const tRes = await syncDataToOnline('testimonials', testimonials);
+
+      if (pRes?.githubSynced || hRes?.githubSynced || tRes?.githubSynced) {
+        setSyncStatus({
+          msg: '✓ Successfully committed and updated all live data on GitHub! Changes are now online globally.',
+          type: 'success'
+        });
+      } else if (!githubToken) {
+        setSyncStatus({
+          msg: 'Saved in browser & local server. To sync globally across all devices and live domains, click "Configure GitHub Token" below.',
+          type: 'info'
+        });
+      } else {
+        setSyncStatus({
+          msg: pRes?.githubMessage || 'Sync failed. Please verify token permissions.',
+          type: 'error'
+        });
+      }
+    } catch (e: any) {
+      setSyncStatus({ msg: `Sync error: ${e?.message || e}`, type: 'error' });
+    } finally {
+      setIsSyncingAll(false);
+    }
+  };
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -474,6 +534,135 @@ export default function AdminPage() {
           </button>
         </div>
       </div>
+
+      {/* GitHub Online Cloud Sync Status Banner */}
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-800 shrink-0">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Live Cloud Sync ({githubToken ? 'GitHub Connected' : 'Local Storage Mode'})
+              </h3>
+              {githubToken && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                  Active
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-600 mt-0.5">
+              {githubToken 
+                ? 'All job additions, edits, and deletions commit directly to the GitHub repo and sync across all live domains.' 
+                : 'Connect your GitHub Personal Access Token to commit changes directly online so all visitors see updates immediately.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowTokenSettings(!showTokenSettings)}
+            className="px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-sm"
+          >
+            <Key className="w-3.5 h-3.5 text-amber-700" />
+            <span>{githubToken ? 'Edit Token' : 'Configure Token'}</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={isSyncingAll}
+            onClick={handleSyncAllToGitHub}
+            className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin' : ''}`} />
+            <span>{isSyncingAll ? 'Syncing...' : 'Sync to GitHub'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* GitHub Token Settings Modal / Drawer */}
+      {showTokenSettings && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Key className="w-4 h-4 text-amber-700" />
+              <span>GitHub Personal Access Token</span>
+            </h4>
+            <button
+              type="button"
+              onClick={() => setShowTokenSettings(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Provide a GitHub Personal Access Token (classic with <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono">repo</code> scope or fine-grained token with Contents Read/Write for <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono">itsmyapp-code/sistine</code>). This token is stored securely in your browser to commit live website changes.
+          </p>
+
+          <form onSubmit={handleSaveGithubToken} className="space-y-3">
+            <input
+              type="password"
+              value={tokenInput}
+              onChange={(e) => setTokenInput(e.target.value)}
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+            />
+            <div className="flex items-center gap-2">
+              <button
+                type="submit"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm"
+              >
+                Save Token &amp; Enable Live Sync
+              </button>
+              {githubToken && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    saveGitHubToken('');
+                    setGithubToken('');
+                    setTokenInput('');
+                    setSyncStatus({ msg: 'GitHub Token removed.', type: 'info' });
+                    setShowTokenSettings(false);
+                  }}
+                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg"
+                >
+                  Clear Token
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Global Sync Status Message */}
+      {syncStatus.msg && (
+        <div className={`p-3.5 text-xs font-semibold rounded-xl flex items-center justify-between gap-3 ${
+          syncStatus.type === 'success' 
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
+            : syncStatus.type === 'error'
+            ? 'bg-rose-50 border border-rose-200 text-rose-800'
+            : 'bg-blue-50 border border-blue-200 text-blue-800'
+        }`}>
+          <div className="flex items-center gap-2">
+            {syncStatus.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />}
+            {syncStatus.type === 'error' && <X className="w-4 h-4 text-rose-600 shrink-0" />}
+            {syncStatus.type === 'info' && <Cloud className="w-4 h-4 text-blue-600 shrink-0" />}
+            <span>{syncStatus.msg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSyncStatus({ msg: '', type: '' })}
+            className="text-slate-400 hover:text-slate-600 shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
