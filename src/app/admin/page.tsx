@@ -522,24 +522,11 @@ export default function AdminPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => {
-              if (confirm('Reset to initial Dartmouth default data?')) {
-                resetToDefaults();
-                loadAllData();
-              }
-            }}
-            className="px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-700 transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Demo</span>
-          </button>
-          <button
-            type="button"
             onClick={handleLogout}
-            className="px-4 py-2 rounded-lg bg-rose-900/80 text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-rose-800 transition-colors"
+            className="px-4 py-2 rounded-xl bg-rose-900/80 hover:bg-rose-800 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>Lock</span>
+            <span>Lock / Exit</span>
           </button>
         </div>
       </div>
