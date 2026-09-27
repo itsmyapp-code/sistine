@@ -11,20 +11,20 @@ import { getStoredProjects } from '@/lib/storage';
 
 const DEFAULT_SLIDES = [
   {
+    url: '/images/hero/sistine-painter-dartmouth.jpg',
+    alt: 'Sistine Decorating working on location in Dartmouth, South Devon',
+  },
+  {
+    url: '/images/hero/sistine-exterior-facade.jpg',
+    alt: 'Completed exterior facade and masonry painting in Dartmouth',
+  },
+  {
     url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85',
     alt: 'Dartmouth Townhouse Interior Decorating by Sistine',
   },
   {
-    url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Coastal Exterior Painting & Facade in South Devon',
-  },
-  {
     url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85',
     alt: 'Specialist Wallpapering & Interior Finishes',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Riverside Cottage Redecoration in Dartmouth area',
   },
 ];
 

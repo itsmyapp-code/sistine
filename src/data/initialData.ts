@@ -53,12 +53,12 @@ export const INITIAL_PROJECTS: Project[] = [
     title: 'Coastal Exterior Painting & Facade',
     category: 'Exterior',
     location: 'Kingswear, River Dart',
-    afterImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+    afterImage: '/images/hero/sistine-exterior-facade.jpg',
     beforeImage: 'https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=80',
     images: [
+      '/images/hero/sistine-exterior-facade.jpg',
+      '/images/hero/sistine-painter-dartmouth.jpg',
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80'
     ],
     description: 'Protective exterior masonry painting tailored for coastal weather exposure overlooking the River Dart. High-durability weather-shield coatings.',
     scopeDetails: [
