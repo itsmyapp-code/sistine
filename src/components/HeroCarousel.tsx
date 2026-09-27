@@ -7,52 +7,20 @@ import { ArrowRight, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import Logo from './Logo';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 
-import { getStoredProjects } from '@/lib/storage';
-
-const DEFAULT_SLIDES = [
-  {
-    url: '/images/hero/sistine-painter-dartmouth.jpg',
-    alt: 'Sistine Decorating working on location in Dartmouth, South Devon',
-  },
-  {
-    url: '/images/hero/sistine-exterior-facade.jpg',
-    alt: 'Completed exterior facade and masonry painting in Dartmouth',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Dartmouth Townhouse Interior Decorating by Sistine',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Specialist Wallpapering & Interior Finishes',
-  },
-];
+import { getStoredHeroSlides } from '@/lib/storage';
+import { INITIAL_HERO_SLIDES } from '@/data/initialData';
+import { HeroSlide } from '@/types';
 
 export default function HeroCarousel() {
-  const [slides, setSlides] = useState<{ url: string; alt: string }[]>(DEFAULT_SLIDES);
+  const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_HERO_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const loadSlides = () => {
       try {
-        const stored = getStoredProjects();
+        const stored = getStoredHeroSlides();
         if (stored && stored.length > 0) {
-          const dynamicSlides: { url: string; alt: string }[] = [];
-          stored.forEach((p) => {
-            if (p.afterImage) {
-              dynamicSlides.push({ url: p.afterImage, alt: `${p.title} - Sistine Decorating` });
-            }
-            if (p.images && Array.isArray(p.images)) {
-              p.images.slice(1, 3).forEach((img) => {
-                if (img && !dynamicSlides.some((s) => s.url === img)) {
-                  dynamicSlides.push({ url: img, alt: `${p.title} - Sistine Decorating` });
-                }
-              });
-            }
-          });
-          if (dynamicSlides.length > 0) {
-            setSlides(dynamicSlides.slice(0, 6));
-          }
+          setSlides(stored);
         }
       } catch (e) {}
     };

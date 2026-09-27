@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Lock, 
   KeyRound, 
@@ -14,21 +14,29 @@ import {
   X,
   Clock,
   Check,
-  ShieldCheck
+  Edit3,
+  ArrowUp,
+  ArrowDown,
+  Image as ImageIcon,
+  Sliders,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import Logo from '@/components/Logo';
-import { Project, Testimonial, ProjectCategory } from '@/types';
+import { Project, Testimonial, ProjectCategory, HeroSlide } from '@/types';
 import { 
   getStoredProjects, 
   saveStoredProjects, 
   getStoredTestimonials, 
-  saveStoredTestimonials, 
+  saveStoredTestimonials,
+  getStoredHeroSlides,
+  saveStoredHeroSlides,
   resetToDefaults 
 } from '@/lib/storage';
 
 const DEFAULT_PIN = '1234';
 
-async function compressImage(file: File, maxWidth = 1200, quality = 0.82): Promise<string> {
+async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -65,21 +73,27 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>('');
   const [pinError, setPinError] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'projects' | 'testimonials'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'hero' | 'testimonials'>('projects');
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
 
   // Project form state
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectTitle, setProjectTitle] = useState('');
   const [projectCategory, setProjectCategory] = useState<ProjectCategory>('Interior');
   const [projectLocation, setProjectLocation] = useState('Dartmouth');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectImages, setProjectImages] = useState<string[]>([]);
-  const [projectScope1, setProjectScope1] = useState('');
-  const [projectScope2, setProjectScope2] = useState('');
   const [isCompressingProject, setIsCompressingProject] = useState(false);
   const [projectSuccessMsg, setProjectSuccessMsg] = useState('');
+
+  // Hero form state
+  const [newHeroUrl, setNewHeroUrl] = useState('');
+  const [newHeroAlt, setNewHeroAlt] = useState('');
+  const [isCompressingHero, setIsCompressingHero] = useState(false);
+  const [heroSuccessMsg, setHeroSuccessMsg] = useState('');
 
   // Testimonial form state
   const [testClientName, setTestClientName] = useState('');
@@ -88,6 +102,8 @@ export default function AdminPage() {
   const [testRating, setTestRating] = useState(5);
   const [testReviewText, setTestReviewText] = useState('');
   const [testSuccessMsg, setTestSuccessMsg] = useState('');
+
+  const projectFormRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -101,6 +117,7 @@ export default function AdminPage() {
   const loadAllData = () => {
     setProjects(getStoredProjects());
     setTestimonials(getStoredTestimonials());
+    setHeroSlides(getStoredHeroSlides());
   };
 
   useEffect(() => {
@@ -118,7 +135,7 @@ export default function AdminPage() {
       setIsAuthenticated(true);
       setPinError('');
     } else {
-      setPinError('Invalid PIN. (Default demo PIN is 1234)');
+      setPinError('Incorrect PIN code. Please try again.');
     }
   };
 
@@ -130,7 +147,7 @@ export default function AdminPage() {
     setPinInput('');
   };
 
-  // Multi-image file uploader
+  // --- PROJECT MANAGEMENT HANDLERS ---
   const handleMultipleImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -164,56 +181,166 @@ export default function AdminPage() {
     });
   };
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  const startEditProject = (project: Project) => {
+    setEditingProjectId(project.id);
+    setProjectTitle(project.title);
+    setProjectCategory(project.category);
+    setProjectLocation(project.location);
+    setProjectDescription(project.description);
+    setProjectImages(project.images && project.images.length > 0 ? project.images : [project.afterImage]);
+    
+    if (projectFormRef.current) {
+      projectFormRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const cancelEditProject = () => {
+    setEditingProjectId(null);
+    setProjectTitle('');
+    setProjectCategory('Interior');
+    setProjectLocation('Dartmouth');
+    setProjectDescription('');
+    setProjectImages([]);
+  };
+
+  const handleSaveProject = (e: React.FormEvent) => {
     e.preventDefault();
     if (projectImages.length === 0) {
       alert('Please upload at least one photo of the work carried out.');
       return;
     }
 
-    const scopeList: string[] = [];
-    if (projectScope1.trim()) scopeList.push(projectScope1.trim());
-    if (projectScope2.trim()) scopeList.push(projectScope2.trim());
+    if (editingProjectId) {
+      // Update existing project
+      const updated = projects.map(p => {
+        if (p.id === editingProjectId) {
+          return {
+            ...p,
+            title: projectTitle,
+            category: projectCategory,
+            location: projectLocation,
+            description: projectDescription,
+            afterImage: projectImages[0],
+            images: projectImages,
+          };
+        }
+        return p;
+      });
 
-    const newProj: Project = {
-      id: `proj-${Date.now()}`,
-      slug: projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      title: projectTitle,
-      category: projectCategory,
-      location: projectLocation,
-      afterImage: projectImages[0],
-      beforeImage: projectImages.length > 1 ? projectImages[projectImages.length - 1] : undefined,
-      images: projectImages,
-      description: projectDescription,
-      scopeDetails: scopeList.length > 0 ? scopeList : undefined,
-      featured: false,
-      publishedAt: new Date().toISOString().split('T')[0],
-    };
+      saveStoredProjects(updated);
+      setProjects(updated);
+      setProjectSuccessMsg(`Project "${projectTitle}" updated successfully!`);
+      cancelEditProject();
+    } else {
+      // Create new project
+      const newProj: Project = {
+        id: `proj-${Date.now()}`,
+        slug: projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        title: projectTitle,
+        category: projectCategory,
+        location: projectLocation,
+        afterImage: projectImages[0],
+        images: projectImages,
+        description: projectDescription,
+        publishedAt: new Date().toISOString().split('T')[0],
+      };
 
-    const updated = [newProj, ...projects];
-    saveStoredProjects(updated);
-    setProjects(updated);
-    setProjectSuccessMsg(`Project with ${projectImages.length} photos published!`);
-
-    setProjectTitle('');
-    setProjectLocation('Dartmouth');
-    setProjectDescription('');
-    setProjectImages([]);
-    setProjectScope1('');
-    setProjectScope2('');
+      const updated = [newProj, ...projects];
+      saveStoredProjects(updated);
+      setProjects(updated);
+      setProjectSuccessMsg(`Project with ${projectImages.length} photos published!`);
+      cancelEditProject();
+    }
 
     setTimeout(() => setProjectSuccessMsg(''), 4000);
   };
 
-  const handleDeleteProject = (id: string) => {
-    if (confirm('Delete this project?')) {
+  const handleDeleteProject = (id: string, title: string) => {
+    if (confirm(`Are you sure you want to delete "${title}"?`)) {
       const updated = projects.filter((p) => p.id !== id);
       saveStoredProjects(updated);
       setProjects(updated);
+      if (editingProjectId === id) {
+        cancelEditProject();
+      }
+      setProjectSuccessMsg(`Project "${title}" deleted.`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
     }
   };
 
-  // Direct Admin Review Creation (automatically approved)
+  // --- HERO CAROUSEL MANAGEMENT HANDLERS ---
+  const handleHeroFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsCompressingHero(true);
+    try {
+      const compressed = await compressImage(files[0], 2000, 0.88);
+      const newSlide: HeroSlide = {
+        id: `hero-${Date.now()}`,
+        url: compressed,
+        alt: newHeroAlt.trim() || 'Sistine Decorating Dartmouth',
+      };
+      const updated = [...heroSlides, newSlide];
+      saveStoredHeroSlides(updated);
+      setHeroSlides(updated);
+      setNewHeroAlt('');
+      setHeroSuccessMsg('New hero image uploaded & added to carousel!');
+      setTimeout(() => setHeroSuccessMsg(''), 4000);
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading hero image.');
+    } finally {
+      setIsCompressingHero(false);
+    }
+  };
+
+  const handleAddHeroUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newHeroUrl.trim()) return;
+
+    const newSlide: HeroSlide = {
+      id: `hero-${Date.now()}`,
+      url: newHeroUrl.trim(),
+      alt: newHeroAlt.trim() || 'Sistine Decorating Dartmouth',
+    };
+    const updated = [...heroSlides, newSlide];
+    saveStoredHeroSlides(updated);
+    setHeroSlides(updated);
+    setNewHeroUrl('');
+    setNewHeroAlt('');
+    setHeroSuccessMsg('Hero image added to carousel!');
+    setTimeout(() => setHeroSuccessMsg(''), 4000);
+  };
+
+  const handleDeleteHeroSlide = (id: string) => {
+    if (heroSlides.length <= 1) {
+      alert('You must keep at least one hero slide.');
+      return;
+    }
+    if (confirm('Remove this slide from the homepage carousel?')) {
+      const updated = heroSlides.filter(s => s.id !== id);
+      saveStoredHeroSlides(updated);
+      setHeroSlides(updated);
+      setHeroSuccessMsg('Hero slide removed.');
+      setTimeout(() => setHeroSuccessMsg(''), 3000);
+    }
+  };
+
+  const handleMoveHeroSlide = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === heroSlides.length - 1) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const copy = [...heroSlides];
+    const [moved] = copy.splice(index, 1);
+    copy.splice(targetIndex, 0, moved);
+
+    saveStoredHeroSlides(copy);
+    setHeroSlides(copy);
+  };
+
+  // --- TESTIMONIAL HANDLERS ---
   const handleCreateTestimonial = (e: React.FormEvent) => {
     e.preventDefault();
     const newTest: Testimonial = {
@@ -223,7 +350,7 @@ export default function AdminPage() {
       projectType: testProjectType,
       rating: testRating,
       reviewText: testReviewText,
-      status: 'approved', // Created by admin directly
+      status: 'approved',
       publishedAt: new Date().toISOString().split('T')[0],
     };
 
@@ -240,7 +367,6 @@ export default function AdminPage() {
     setTimeout(() => setTestSuccessMsg(''), 4000);
   };
 
-  // Approve a pending review
   const handleApproveReview = (id: string) => {
     const updated = testimonials.map(t => t.id === id ? { ...t, status: 'approved' as const } : t);
     saveStoredTestimonials(updated);
@@ -249,7 +375,6 @@ export default function AdminPage() {
     setTimeout(() => setTestSuccessMsg(''), 4000);
   };
 
-  // Reject / Delete a review
   const handleDeleteTestimonial = (id: string) => {
     if (confirm('Are you sure you want to delete this review?')) {
       const updated = testimonials.filter((t) => t.id !== id);
@@ -271,7 +396,7 @@ export default function AdminPage() {
               Sistine Admin Portal
             </h1>
             <p className="text-xs text-slate-500">
-              Enter PIN to manage project photo galleries and approve client reviews.
+              Enter PIN to manage homepage hero images, project galleries, and reviews.
             </p>
           </div>
 
@@ -287,7 +412,7 @@ export default function AdminPage() {
                     setPinInput(e.target.value);
                     setPinError('');
                   }}
-                  placeholder="Enter PIN (1234)"
+                  placeholder="Enter 4-digit PIN"
                   className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-center text-lg font-mono tracking-widest text-slate-900 focus:border-slate-900"
                   autoFocus
                 />
@@ -321,7 +446,7 @@ export default function AdminPage() {
             Sistine Decorating Portal
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Manage your Dartmouth job galleries and moderate incoming client reviews.
+            Manage your hero carousel, edit/delete Dartmouth job galleries, and moderate client reviews.
           </p>
         </div>
 
@@ -329,12 +454,12 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => {
-              if (confirm('Reset to initial Dartmouth projects & reviews?')) {
+              if (confirm('Reset to initial Dartmouth default data?')) {
                 resetToDefaults();
                 loadAllData();
               }
             }}
-            className="px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5"
+            className="px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-700 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Reset Demo</span>
@@ -342,7 +467,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={handleLogout}
-            className="px-4 py-2 rounded-lg bg-rose-900/80 text-white text-xs font-semibold flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-rose-900/80 text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-rose-800 transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Lock</span>
@@ -350,117 +475,168 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Tabs with Pending Review Notification Count */}
-      <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
         <button
           type="button"
           onClick={() => setActiveTab('projects')}
-          className={`px-5 py-2 rounded-full font-serif text-sm font-semibold transition-all ${
+          className={`px-5 py-2.5 rounded-full font-serif text-sm font-semibold transition-all flex items-center gap-2 ${
             activeTab === 'projects'
               ? 'bg-slate-900 text-white shadow-sm'
-              : 'bg-white text-slate-700 border border-slate-200'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
           }`}
         >
-          Job Galleries ({projects.length})
+          <Layers className="w-4 h-4" />
+          <span>Job Galleries &amp; Projects ({projects.length})</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('hero')}
+          className={`px-5 py-2.5 rounded-full font-serif text-sm font-semibold transition-all flex items-center gap-2 ${
+            activeTab === 'hero'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <ImageIcon className="w-4 h-4" />
+          <span>Hero Carousel Slides ({heroSlides.length})</span>
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('testimonials')}
-          className={`px-5 py-2 rounded-full font-serif text-sm font-semibold transition-all relative ${
+          className={`px-5 py-2.5 rounded-full font-serif text-sm font-semibold transition-all relative flex items-center gap-2 ${
             activeTab === 'testimonials'
               ? 'bg-slate-900 text-white shadow-sm'
-              : 'bg-white text-slate-700 border border-slate-200'
+              : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
           }`}
         >
+          <Star className="w-4 h-4" />
           <span>Reviews ({testimonials.length})</span>
           {pendingReviews.length > 0 && (
-            <span className="ml-2 bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded-full">
+            <span className="ml-1 bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded-full">
               {pendingReviews.length} Pending
             </span>
           )}
         </button>
       </div>
 
-      {/* Projects Tab */}
+      {/* ================= TAB 1: PROJECTS & GALLERIES ================= */}
       {activeTab === 'projects' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <div>
-              <h2 className="text-xl font-serif font-bold text-slate-900">Add New Job &amp; Photos</h2>
-              <p className="text-xs text-slate-500">Upload multiple photos of work carried out on this job.</p>
+          {/* Project Form (Create or Edit) */}
+          <div ref={projectFormRef} className="lg:col-span-6 bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-serif font-bold text-slate-900 flex items-center gap-2">
+                  {editingProjectId ? (
+                    <>
+                      <Edit3 className="w-5 h-5 text-amber-600" />
+                      <span>Edit Job Details</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5 text-slate-900" />
+                      <span>Add New Job &amp; Photos</span>
+                    </>
+                  )}
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {editingProjectId 
+                    ? 'Modify text, update categories, add/remove photos, or change cover image.' 
+                    : 'Upload multi-image photo galleries of completed painting & decorating work.'}
+                </p>
+              </div>
+
+              {editingProjectId && (
+                <button
+                  type="button"
+                  onClick={cancelEditProject}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
+                >
+                  Cancel Edit
+                </button>
+              )}
             </div>
 
             {projectSuccessMsg && (
-              <p className="p-2.5 bg-emerald-50 text-emerald-800 text-xs rounded-lg">{projectSuccessMsg}</p>
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <span>{projectSuccessMsg}</span>
+              </div>
             )}
 
-            <form onSubmit={handleCreateProject} className="space-y-4">
+            <form onSubmit={handleSaveProject} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1">Project / Job Title *</label>
+                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Project / Job Title *</label>
                 <input
                   type="text"
                   required
                   value={projectTitle}
                   onChange={(e) => setProjectTitle(e.target.value)}
-                  placeholder="e.g. Victorian Drawing Room &amp; Cornice Painting"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                  placeholder="e.g. Victorian Drawing Room & Cornice Painting"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1">Category</label>
+                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Category *</label>
                   <select
                     value={projectCategory}
                     onChange={(e) => setProjectCategory(e.target.value as ProjectCategory)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                   >
-                    <option value="Interior">Interior</option>
-                    <option value="Exterior">Exterior</option>
-                    <option value="Wallpapering">Wallpapering</option>
+                    <option value="Interior">Interior Painting</option>
+                    <option value="Exterior">Exterior Painting</option>
+                    <option value="Wallpapering">Specialist Wallpapering</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1">Location</label>
+                  <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Location *</label>
                   <input
                     type="text"
                     required
                     value={projectLocation}
                     onChange={(e) => setProjectLocation(e.target.value)}
                     placeholder="e.g. Southtown, Dartmouth"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1">Job Description</label>
+                <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">Job Description *</label>
                 <textarea
                   required
                   rows={3}
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
                   placeholder="Details of the work carried out, room preparation, paint finishes applied..."
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                 />
               </div>
 
-              {/* Multiple Image Upload */}
+              {/* Photo Upload & Gallery Manager */}
               <div className="space-y-2">
-                <label className="block text-xs font-semibold uppercase">
+                <label className="block text-xs font-semibold uppercase text-slate-700">
                   Job Photos (Upload Multiple) *
                 </label>
-                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-slate-800 rounded-xl bg-slate-50 cursor-pointer transition-colors group">
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-slate-900 rounded-2xl bg-slate-50 hover:bg-slate-100/60 cursor-pointer transition-colors group">
                   <Upload className="w-6 h-6 text-slate-400 group-hover:text-slate-800 mb-1" />
-                  <span className="text-xs font-semibold text-slate-700">Click to Select Photos</span>
-                  <span className="text-[11px] text-slate-400">Select multiple files from your computer or phone</span>
+                  <span className="text-xs font-semibold text-slate-700">
+                    {isCompressingProject ? 'Compressing Photos...' : 'Click to Add Photos'}
+                  </span>
+                  <span className="text-[11px] text-slate-400">Select multiple files from computer or phone</span>
                   <input
                     type="file"
                     accept="image/*"
                     multiple
                     onChange={handleMultipleImagesUpload}
                     className="hidden"
+                    disabled={isCompressingProject}
                   />
                 </label>
 
@@ -471,13 +647,13 @@ export default function AdminPage() {
                     </p>
                     <div className="grid grid-cols-3 gap-2.5">
                       {projectImages.map((img, idx) => (
-                        <div key={idx} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-slate-200 group bg-slate-100">
+                        <div key={idx} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 group bg-slate-100 shadow-xs">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                          <img src={img} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                           
                           {idx === 0 && (
-                            <span className="absolute bottom-1 left-1 bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
-                              Cover
+                            <span className="absolute top-1 left-1 bg-amber-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                              Cover Photo
                             </span>
                           )}
 
@@ -486,8 +662,8 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => setAsCoverPhoto(idx)}
-                                className="px-1.5 py-1 rounded bg-white text-slate-900 text-[10px] font-semibold"
-                                title="Make Cover Photo"
+                                className="px-2 py-1 rounded bg-white text-slate-900 text-[10px] font-semibold hover:bg-amber-400 transition-colors"
+                                title="Make this the Primary Cover Photo"
                               >
                                 Set Cover
                               </button>
@@ -495,7 +671,7 @@ export default function AdminPage() {
                             <button
                               type="button"
                               onClick={() => removePhoto(idx)}
-                              className="p-1 rounded bg-rose-600 text-white"
+                              className="p-1.5 rounded bg-rose-600 hover:bg-rose-500 text-white transition-colors"
                               title="Delete Photo"
                             >
                               <X className="w-3.5 h-3.5" />
@@ -508,49 +684,98 @@ export default function AdminPage() {
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isCompressingProject || projectImages.length === 0}
-                className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{isCompressingProject ? 'Compressing Photos...' : `Publish Job (${projectImages.length} Photos)`}</span>
-              </button>
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="submit"
+                  disabled={isCompressingProject || projectImages.length === 0}
+                  className={`flex-1 py-3.5 rounded-xl font-semibold text-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
+                    editingProjectId
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                      : 'bg-slate-900 hover:bg-slate-800 text-white'
+                  } disabled:opacity-50`}
+                >
+                  <Check className="w-4 h-4" />
+                  <span>
+                    {isCompressingProject 
+                      ? 'Compressing Photos...' 
+                      : editingProjectId 
+                        ? 'Save Project Changes' 
+                        : `Publish Job (${projectImages.length} Photos)`}
+                  </span>
+                </button>
+
+                {editingProjectId && (
+                  <button
+                    type="button"
+                    onClick={cancelEditProject}
+                    className="px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
-          <div className="lg:col-span-6 space-y-3">
-            <h2 className="text-xl font-serif font-bold text-slate-900">
-              Active Job Galleries ({projects.length})
-            </h2>
+          {/* Active Projects List */}
+          <div className="lg:col-span-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-serif font-bold text-slate-900">
+                Active Job Galleries ({projects.length})
+              </h2>
+              <span className="text-xs text-slate-500">Click &quot;Edit&quot; to modify text or photos</span>
+            </div>
 
             <div className="space-y-3">
               {projects.map((p) => {
                 const count = p.images?.length || 1;
+                const isCurrent = editingProjectId === p.id;
+
                 return (
-                  <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 flex items-start justify-between gap-4 shadow-xs">
-                    <div className="flex items-start gap-3">
-                      <div className="relative w-16 h-14 rounded-lg overflow-hidden bg-slate-900 shrink-0">
+                  <div 
+                    key={p.id} 
+                    className={`bg-white p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 shadow-xs ${
+                      isCurrent ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/20' : 'border-slate-200 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div className="relative w-20 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={p.afterImage} alt={p.title} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[9px] px-1 rounded">
+                        <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                           {count}📷
                         </span>
                       </div>
                       <div>
                         <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-1">{p.title}</h3>
-                        <p className="text-xs text-slate-500">{p.category} • {p.location}</p>
-                        <p className="text-[11px] text-slate-400 mt-1">{count} photos in gallery</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{p.category} • {p.location}</p>
+                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{p.description}</p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteProject(p.id)}
-                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded shrink-0"
-                      title="Delete job"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => startEditProject(p)}
+                        className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                          isCurrent 
+                            ? 'bg-amber-600 text-white' 
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        }`}
+                        title="Edit Project Details & Photos"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProject(p.id, p.title)}
+                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Delete Project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -560,7 +785,144 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Reviews Tab with Moderation Workflow */}
+      {/* ================= TAB 2: HERO CAROUSEL SLIDES ================= */}
+      {activeTab === 'hero' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Add Hero Slide Form */}
+          <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-5">
+            <div>
+              <h2 className="text-xl font-serif font-bold text-slate-900 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-slate-900" />
+                <span>Add Hero Image</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Upload a high-resolution photo to appear in the Ken Burns homepage carousel.
+              </p>
+            </div>
+
+            {heroSuccessMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <span>{heroSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* Upload File */}
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase text-slate-700">Option 1: Upload Photo File</label>
+              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-slate-900 rounded-2xl bg-slate-50 hover:bg-slate-100/60 cursor-pointer transition-colors group">
+                <ImageIcon className="w-8 h-8 text-slate-400 group-hover:text-slate-800 mb-2" />
+                <span className="text-xs font-semibold text-slate-700">
+                  {isCompressingHero ? 'Optimizing Image...' : 'Click to Upload Hero Image'}
+                </span>
+                <span className="text-[11px] text-slate-400">JPG, PNG, or WebP</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleHeroFileUpload}
+                  className="hidden"
+                  disabled={isCompressingHero}
+                />
+              </label>
+            </div>
+
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-slate-200 w-full" />
+              <span className="bg-white px-3 text-xs text-slate-400 uppercase font-semibold">Or</span>
+              <div className="border-t border-slate-200 w-full" />
+            </div>
+
+            {/* Add via URL */}
+            <form onSubmit={handleAddHeroUrl} className="space-y-3">
+              <label className="block text-xs font-semibold uppercase text-slate-700">Option 2: Add Image by URL</label>
+              <input
+                type="url"
+                required
+                value={newHeroUrl}
+                onChange={(e) => setNewHeroUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
+              />
+              <input
+                type="text"
+                value={newHeroAlt}
+                onChange={(e) => setNewHeroAlt(e.target.value)}
+                placeholder="Description / Alt text (optional)"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
+              />
+              <button
+                type="submit"
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all"
+              >
+                Add Slide from URL
+              </button>
+            </form>
+          </div>
+
+          {/* Active Hero Slides Manager */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-serif font-bold text-slate-900">
+                Active Hero Carousel Slides ({heroSlides.length})
+              </h2>
+              <span className="text-xs text-slate-500">Ken Burns effect cycles every 7s</span>
+            </div>
+
+            <div className="space-y-3">
+              {heroSlides.map((slide, idx) => (
+                <div key={slide.id} className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between gap-4 shadow-xs">
+                  <div className="flex items-center gap-3.5">
+                    <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+                    <div className="relative w-24 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={slide.url} alt={slide.alt} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-900 line-clamp-1">{slide.alt}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1 font-mono">{slide.url.slice(0, 45)}...</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      disabled={idx === 0}
+                      onClick={() => handleMoveHeroSlide(idx, 'up')}
+                      className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-30"
+                      title="Move slide earlier"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={idx === heroSlides.length - 1}
+                      onClick={() => handleMoveHeroSlide(idx, 'down')}
+                      className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-30"
+                      title="Move slide later"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteHeroSlide(slide.id)}
+                      className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors ml-1"
+                      title="Delete Slide"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* ================= TAB 3: REVIEWS MODERATION ================= */}
       {activeTab === 'testimonials' && (
         <div className="space-y-8">
           
@@ -571,7 +933,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Section 1: Pending Client Reviews Awaiting Approval */}
+          {/* Pending Reviews Section */}
           {pendingReviews.length > 0 && (
             <div className="bg-amber-50/80 border-2 border-amber-300 rounded-3xl p-6 sm:p-8 space-y-4">
               <div className="flex items-center gap-2">
@@ -581,7 +943,7 @@ export default function AdminPage() {
                 </h2>
               </div>
               <p className="text-xs text-amber-800">
-                These reviews were submitted by clients on the website and are currently hidden from the public until you click &quot;Approve &amp; Publish&quot;.
+                These reviews were submitted by clients on the website and are hidden from the public until you click &quot;Approve &amp; Publish&quot;.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -626,11 +988,11 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Section 2: Create Review & Live Reviews List */}
+          {/* Add Review & Published List */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Create Testimonial Form */}
-            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-4">
               <h2 className="text-xl font-serif font-bold text-slate-900">Add Approved Review Directly</h2>
               <form onSubmit={handleCreateTestimonial} className="space-y-4">
                 <div>
@@ -641,7 +1003,7 @@ export default function AdminPage() {
                     value={testClientName}
                     onChange={(e) => setTestClientName(e.target.value)}
                     placeholder="e.g. Mark & Sarah Jenkins"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -652,7 +1014,7 @@ export default function AdminPage() {
                       required
                       value={testLocation}
                       onChange={(e) => setTestLocation(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                     />
                   </div>
                   <div>
@@ -662,7 +1024,7 @@ export default function AdminPage() {
                       required
                       value={testProjectType}
                       onChange={(e) => setTestProjectType(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                     />
                   </div>
                 </div>
@@ -673,12 +1035,12 @@ export default function AdminPage() {
                     rows={3}
                     value={testReviewText}
                     onChange={(e) => setTestReviewText(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all"
+                  className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all"
                 >
                   Publish Approved Review
                 </button>
@@ -691,7 +1053,7 @@ export default function AdminPage() {
                 Published Live Reviews ({approvedReviews.length})
               </h2>
               {approvedReviews.map((t) => (
-                <div key={t.id} className="bg-white p-4 rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                <div key={t.id} className="bg-white p-4 rounded-2xl border border-slate-200 space-y-2 shadow-xs">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1 text-amber-500">
                       {[...Array(t.rating)].map((_, i) => (
@@ -701,10 +1063,10 @@ export default function AdminPage() {
                     <button
                       type="button"
                       onClick={() => handleDeleteTestimonial(t.id)}
-                      className="text-rose-600 p-1 hover:bg-rose-50 rounded"
+                      className="text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors"
                       title="Delete review"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                   <p className="text-xs text-slate-700 italic font-serif">&ldquo;{t.reviewText}&rdquo;</p>

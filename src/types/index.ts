@@ -3,6 +3,13 @@ export type ProjectCategory =
   | 'Exterior'
   | 'Wallpapering';
 
+export interface HeroSlide {
+  id: string;
+  url: string;
+  alt: string;
+  caption?: string;
+}
+
 export interface Project {
   id: string;
   slug: string;
