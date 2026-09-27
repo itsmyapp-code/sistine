@@ -40,7 +40,7 @@ export default function HomePage() {
   const services = [
     {
       title: 'Interior Painting & Decorating',
-      href: '/projects',
+      href: '/projects?category=Interior',
       icon: Home,
       gradient: 'from-slate-700 to-slate-900',
       description: 'Transforming living spaces, bedrooms, hallways, and woodwork with clean lines, smooth preparation, and durable finishes.',
@@ -48,7 +48,7 @@ export default function HomePage() {
     },
     {
       title: 'Exterior Painting & Facades',
-      href: '/projects',
+      href: '/projects?category=Exterior',
       icon: Paintbrush,
       gradient: 'from-blue-700 to-slate-900',
       description: 'Long-lasting weather protection for coastal masonry, rendered walls, exterior timbers, and front doors throughout Dartmouth.',
@@ -56,7 +56,7 @@ export default function HomePage() {
     },
     {
       title: 'Specialist Wallpapering',
-      href: '/projects',
+      href: '/projects?category=Wallpapering',
       icon: Layers,
       gradient: 'from-amber-700 to-slate-900',
       description: 'Precision hanging of designer feature wallpapers, lining paper, and pattern matching with meticulous care.',
