@@ -1,42 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { 
   Phone, 
   Mail, 
-  MapPin, 
-  Star, 
   ArrowRight, 
   Paintbrush, 
   Home, 
-  Layers, 
-  Camera
+  Layers
 } from 'lucide-react';
 import HeroCarousel from '@/components/HeroCarousel';
-import { Project, Testimonial } from '@/types';
 import { BUSINESS_CONFIG } from '@/data/initialData';
-import { getStoredProjects, getStoredTestimonials } from '@/lib/storage';
-import ProjectGalleryModal from '@/components/ProjectGalleryModal';
 
 export default function HomePage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [selectedGalleryProject, setSelectedGalleryProject] = useState<Project | null>(null);
-
-  useEffect(() => {
-    const load = () => {
-      setProjects(getStoredProjects());
-      const all = getStoredTestimonials();
-      const approved = all.filter(t => t.status === 'approved' || (t as any).status === undefined);
-      setTestimonials(approved);
-    };
-    load();
-    window.addEventListener('apex_data_updated', load);
-    return () => window.removeEventListener('apex_data_updated', load);
-  }, []);
-
   const services = [
     {
       title: 'Interior Painting & Decorating',
@@ -126,135 +103,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. FEATURED WORK SHOWCASE */}
-      <section className="py-16 sm:py-24 bg-white border-t border-slate-200/70">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className="text-xs font-semibold tracking-widest text-amber-800 uppercase bg-amber-50 px-3 py-1 rounded-full">
-                Recent Projects
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-serif text-slate-900">
-                Completed Work in Dartmouth
-              </h2>
-            </div>
-            <Link
-              href="/projects"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-800 hover:text-amber-700 transition-colors"
-            >
-              <span>View All Portfolio Items</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.slice(0, 3).map((project) => {
-              const photoCount = project.images && project.images.length > 0 ? project.images.length : 1;
-
-              return (
-                <div
-                  key={project.id}
-                  onClick={() => setSelectedGalleryProject(project)}
-                  className="group cursor-pointer bg-[#faf9f5] rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-                >
-                  <div className="relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
-                    <Image
-                      src={project.afterImage}
-                      alt={project.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 400px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    
-                    <div className="absolute top-3 left-3">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 text-white backdrop-blur-sm">
-                        {project.category}
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-medium text-white shadow">
-                      <Camera className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{photoCount} Photos</span>
-                    </div>
-                  </div>
-
-                  <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-1.5 text-xs text-amber-800 font-medium">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{project.location}</span>
-                      </div>
-
-                      <h3 className="text-xl font-serif font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
-                        {project.title}
-                      </h3>
-
-                      <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">
-                        {project.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">
-                      <span>View Gallery Photos</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. CLIENT REVIEWS SECTION */}
-      {testimonials.length > 0 && (
-        <section className="py-16 sm:py-20 bg-[#f5f3ee] border-t border-slate-200/80">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            
-            <div className="text-center max-w-2xl mx-auto space-y-3">
-              <span className="text-xs font-semibold tracking-widest text-amber-800 uppercase bg-amber-100 px-3 py-1 rounded-full">
-                Local Recommendations
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-serif text-slate-900">
-                What Our Clients Say
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              {testimonials.slice(0, 3).map((test) => (
-                <div
-                  key={test.id}
-                  className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-1 text-amber-500">
-                      {[...Array(test.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-500 text-amber-500" />
-                      ))}
-                    </div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      {test.projectType}
-                    </p>
-                    <blockquote className="text-sm text-slate-700 leading-relaxed italic font-serif">
-                      &ldquo;{test.reviewText}&rdquo;
-                    </blockquote>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100">
-                    <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
-                    <p className="text-xs text-slate-500">{test.location}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </section>
-      )}
-
-      {/* 5. CALL TO ACTION SECTION */}
+      {/* 3. CALL TO ACTION SECTION */}
       <section className="relative py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white overflow-hidden">
         <div className="relative max-w-4xl mx-auto text-center px-6 space-y-6">
           <span className="inline-block bg-amber-400/20 text-amber-300 font-sans font-semibold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-amber-400/30">
@@ -284,12 +133,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Gallery Modal */}
-      <ProjectGalleryModal
-        project={selectedGalleryProject}
-        onClose={() => setSelectedGalleryProject(null)}
-      />
 
     </div>
   );

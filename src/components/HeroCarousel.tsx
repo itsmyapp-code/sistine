@@ -7,49 +7,88 @@ import { ArrowRight, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import Logo from './Logo';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 
-const HERO_SLIDES = [
+import { getStoredProjects } from '@/lib/storage';
+
+const DEFAULT_SLIDES = [
   {
-    url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Coastal Devon home interior decorated by Sistine',
+    url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85',
+    alt: 'Dartmouth Townhouse Interior Decorating by Sistine',
   },
   {
     url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Pristine exterior painted facade in South Devon',
-  },
-  {
-    url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Period drawing room painted in heritage neutral tones',
+    alt: 'Coastal Exterior Painting & Facade in South Devon',
   },
   {
     url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85',
-    alt: 'Specialist wallpapering and woodwork finish',
+    alt: 'Specialist Wallpapering & Interior Finishes',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85',
+    alt: 'Riverside Cottage Redecoration in Dartmouth area',
   },
 ];
 
 export default function HeroCarousel() {
+  const [slides, setSlides] = useState<{ url: string; alt: string }[]>(DEFAULT_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  useEffect(() => {
+    const loadSlides = () => {
+      try {
+        const stored = getStoredProjects();
+        if (stored && stored.length > 0) {
+          const dynamicSlides: { url: string; alt: string }[] = [];
+          stored.forEach((p) => {
+            if (p.afterImage) {
+              dynamicSlides.push({ url: p.afterImage, alt: `${p.title} - Sistine Decorating` });
+            }
+            if (p.images && Array.isArray(p.images)) {
+              p.images.slice(1, 3).forEach((img) => {
+                if (img && !dynamicSlides.some((s) => s.url === img)) {
+                  dynamicSlides.push({ url: img, alt: `${p.title} - Sistine Decorating` });
+                }
+              });
+            }
+          });
+          if (dynamicSlides.length > 0) {
+            setSlides(dynamicSlides.slice(0, 6));
+          }
+        }
+      } catch (e) {}
+    };
+
+    loadSlides();
+    window.addEventListener('apex_data_updated', loadSlides);
+    return () => window.removeEventListener('apex_data_updated', loadSlides);
+  }, []);
+
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev === HERO_SLIDES.length - 1 ? 0 : prev + 1));
+    setSlides((currentSlides) => {
+      setCurrentSlide((prev) => (prev === currentSlides.length - 1 ? 0 : prev + 1));
+      return currentSlides;
+    });
   }, []);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev === 0 ? HERO_SLIDES.length - 1 : prev - 1));
+    setSlides((currentSlides) => {
+      setCurrentSlide((prev) => (prev === 0 ? currentSlides.length - 1 : prev - 1));
+      return currentSlides;
+    });
   }, []);
 
   // Auto-advance slides every 7 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      nextSlide();
+      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
     }, 7000);
     return () => clearInterval(timer);
-  }, [nextSlide]);
+  }, [slides.length]);
 
   return (
     <section className="relative h-[80vh] md:h-[92vh] w-full overflow-hidden bg-slate-950 text-white flex items-center justify-center">
       
       {/* Background Carousel Slides with Ken Burns Effect */}
-      {HERO_SLIDES.map((slide, index) => {
+      {slides.map((slide, index) => {
         const isActive = index === currentSlide;
         return (
           <div
@@ -120,7 +159,7 @@ export default function HeroCarousel() {
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
         {/* Dots */}
         <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
-          {HERO_SLIDES.map((_, idx) => (
+          {slides.map((_, idx) => (
             <button
               key={idx}
               type="button"
