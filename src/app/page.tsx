@@ -14,7 +14,7 @@ import {
   Layers, 
   Camera
 } from 'lucide-react';
-import Logo from '@/components/Logo';
+import HeroCarousel from '@/components/HeroCarousel';
 import { Project, Testimonial } from '@/types';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 import { getStoredProjects, getStoredTestimonials } from '@/lib/storage';
@@ -67,56 +67,8 @@ export default function HomePage() {
   return (
     <div className="space-y-0 pb-0">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative h-[80vh] md:h-[90vh] w-full overflow-hidden bg-slate-950 text-white flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85"
-            alt="Beautifully painted home interior in Devon"
-            fill
-            sizes="100vw"
-            className="object-cover brightness-75 contrast-105"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/40 to-slate-950/80" />
-        </div>
-
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 sm:space-y-8 animate-in fade-in duration-700">
-          <Logo variant="circle" />
-
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-normal tracking-tight text-white drop-shadow-md">
-              <span className="block text-slate-200 text-xl sm:text-3xl mb-2 font-sans font-light tracking-wide uppercase">
-                Welcome to
-              </span>
-              <span className="block font-semibold text-amber-200">
-                Sistine Decorating
-              </span>
-            </h1>
-            <p className="text-base sm:text-xl md:text-2xl text-slate-200 font-light max-w-2xl mx-auto drop-shadow">
-              Quality Painting &amp; Decorating in Dartmouth &amp; South Devon
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
-            <Link
-              href="/projects"
-              className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-sans font-bold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-xl hover:scale-105 transition-all duration-300 inline-flex items-center justify-center gap-2"
-            >
-              <span>View Our Work</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <Link
-              href="/contact"
-              className="w-full sm:w-auto bg-white/20 hover:bg-white/30 text-white border-2 border-white/60 hover:border-white backdrop-blur-md font-sans font-semibold px-8 py-3.5 rounded-full text-base sm:text-lg shadow-lg hover:scale-105 transition-all duration-300 inline-flex items-center justify-center gap-2"
-            >
-              <Phone className="w-4 h-4 text-amber-300" />
-              <span>Contact Us</span>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* 1. HERO CAROUSEL WITH KEN BURNS EFFECT */}
+      <HeroCarousel />
 
       {/* 2. INTRODUCTION & STORY */}
       <section className="py-16 sm:py-24 bg-[#faf9f5]">
@@ -256,7 +208,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. CLIENT REVIEWS SECTION (Approved reviews only) */}
+      {/* 4. CLIENT REVIEWS SECTION */}
       {testimonials.length > 0 && (
         <section className="py-16 sm:py-20 bg-[#f5f3ee] border-t border-slate-200/80">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
