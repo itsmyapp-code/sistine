@@ -24,7 +24,14 @@ import {
   Cloud,
   RefreshCw,
   Globe,
-  Key
+  Key,
+  HelpCircle,
+  BookOpen,
+  UploadCloud,
+  ChevronRight,
+  Info,
+  Settings,
+  Eye
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { Project, Testimonial, ProjectCategory, HeroSlide } from '@/types';
@@ -110,10 +117,11 @@ export default function AdminPage() {
   const [testReviewText, setTestReviewText] = useState('');
   const [testSuccessMsg, setTestSuccessMsg] = useState('');
 
-  // GitHub Online Sync State
+  // Online Sync State & Help Guide
   const [githubToken, setGithubToken] = useState('');
   const [tokenInput, setTokenInput] = useState('');
   const [showTokenSettings, setShowTokenSettings] = useState(false);
+  const [showHelpGuide, setShowHelpGuide] = useState(false);
   const [syncStatus, setSyncStatus] = useState<{ msg: string; type: 'success' | 'error' | 'info' | '' }>({ msg: '', type: '' });
   const [isSyncingAll, setIsSyncingAll] = useState(false);
 
@@ -149,15 +157,15 @@ export default function AdminPage() {
     saveGitHubToken(cleanToken);
     setGithubToken(cleanToken);
     setSyncStatus({
-      msg: cleanToken ? '✓ GitHub Token saved securely. Live commits enabled.' : 'GitHub Token cleared.',
+      msg: cleanToken ? '✓ Cloud access key saved. Live publishing enabled!' : 'Access key cleared.',
       type: 'success'
     });
     setShowTokenSettings(false);
   };
 
-  const handleSyncAllToGitHub = async () => {
+  const handlePublishToLiveWebsite = async () => {
     setIsSyncingAll(true);
-    setSyncStatus({ msg: 'Syncing all projects, hero slides & reviews to GitHub repository (itsmyapp-code/sistine)...', type: 'info' });
+    setSyncStatus({ msg: 'Publishing your updates to the live website...', type: 'info' });
     try {
       const pRes = await syncDataToOnline('projects', projects);
       const hRes = await syncDataToOnline('hero', heroSlides);
@@ -165,26 +173,27 @@ export default function AdminPage() {
 
       if (pRes?.githubSynced || hRes?.githubSynced || tRes?.githubSynced) {
         setSyncStatus({
-          msg: '✓ Successfully committed and updated all live data on GitHub! Changes are now online globally.',
+          msg: '✓ Successfully published all updates! The live website is updated across all devices.',
           type: 'success'
         });
       } else if (!githubToken) {
         setSyncStatus({
-          msg: 'Saved in browser & local server. To sync globally across all devices and live domains, click "Configure GitHub Token" below.',
+          msg: '✓ Changes saved locally. (To push live globally across all devices, configure your Cloud Key once in Vercel or in Settings below).',
           type: 'info'
         });
       } else {
         setSyncStatus({
-          msg: pRes?.githubMessage || 'Sync failed. Please verify token permissions.',
+          msg: pRes?.githubMessage || 'Unable to complete live publishing. Please check your cloud settings.',
           type: 'error'
         });
       }
     } catch (e: any) {
-      setSyncStatus({ msg: `Sync error: ${e?.message || e}`, type: 'error' });
+      setSyncStatus({ msg: `Publishing error: ${e?.message || e}`, type: 'error' });
     } finally {
       setIsSyncingAll(false);
     }
   };
+
 
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -535,61 +544,160 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* GitHub Online Cloud Sync Status Banner */}
-      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Live Website Status & Publishing Toolbar */}
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-start sm:items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-800 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-800 shrink-0">
             <Globe className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-slate-900">
-                Live Cloud Sync ({githubToken ? 'GitHub Connected' : 'Local Storage Mode'})
+                Website Content Manager
               </h3>
-              {githubToken && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                  Active
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                Live &amp; Ready
+              </span>
             </div>
             <p className="text-xs text-slate-600 mt-0.5">
-              {githubToken 
-                ? 'All job additions, edits, and deletions commit directly to the GitHub repo and sync across all live domains.' 
-                : 'Connect your GitHub Personal Access Token to commit changes directly online so all visitors see updates immediately.'}
+              Add or edit jobs, photos, and reviews below. Click <strong>Update the Website</strong> to publish your changes live.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto shrink-0">
           <button
             type="button"
-            onClick={() => setShowTokenSettings(!showTokenSettings)}
-            className="px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-sm"
+            onClick={() => setShowHelpGuide(!showHelpGuide)}
+            className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm ${
+              showHelpGuide 
+                ? 'bg-amber-100 text-amber-900 border border-amber-300' 
+                : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+            }`}
           >
-            <Key className="w-3.5 h-3.5 text-amber-700" />
-            <span>{githubToken ? 'Edit Token' : 'Configure Token'}</span>
+            <BookOpen className="w-3.5 h-3.5 text-amber-700" />
+            <span>{showHelpGuide ? 'Hide Help Guide' : 'How-To Guide'}</span>
           </button>
 
           <button
             type="button"
             disabled={isSyncingAll}
-            onClick={handleSyncAllToGitHub}
-            className="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+            onClick={handlePublishToLiveWebsite}
+            className="px-4 py-2 text-xs font-bold rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 hover:shadow-md"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSyncingAll ? 'animate-spin' : ''}`} />
-            <span>{isSyncingAll ? 'Syncing...' : 'Sync to GitHub'}</span>
+            <UploadCloud className={`w-4 h-4 text-amber-400 ${isSyncingAll ? 'animate-bounce' : ''}`} />
+            <span>{isSyncingAll ? 'Publishing...' : 'Update the Website'}</span>
           </button>
         </div>
       </div>
 
-      {/* GitHub Token Settings Modal / Drawer */}
+      {/* Interactive Step-by-Step Help Guide */}
+      {showHelpGuide && (
+        <div className="bg-white border border-amber-200/90 rounded-3xl p-6 sm:p-7 shadow-md space-y-6 animate-in fade-in slide-in-from-top-3 duration-200">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                💡
+              </div>
+              <div>
+                <h3 className="text-base font-serif font-bold text-slate-900">
+                  How-To &amp; Admin Help Instructions
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Quick guide on what you can change and how to manage your website content.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowHelpGuide(false)}
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Guide Card 1 */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-sm font-serif">
+                <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-sans font-bold">1</span>
+                <span>Job Galleries &amp; Projects</span>
+              </div>
+              <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
+                <li><strong>Adding a Job:</strong> Fill in the job title, select category (<em>Interior, Exterior, Wallpapering</em>), type location &amp; description, and click <strong>Choose Photos</strong>.</li>
+                <li><strong>Multiple Photos:</strong> You can select multiple photos from your device at once.</li>
+                <li><strong>Cover Photo:</strong> The first photo is shown on the gallery card. Click <strong>Set as Cover</strong> on any photo to make it the main image.</li>
+                <li><strong>Editing &amp; Deleting:</strong> Click <strong>Edit</strong> on any job card to change details, or <strong>Delete</strong> to remove it.</li>
+              </ul>
+            </div>
+
+            {/* Guide Card 2 */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-sm font-serif">
+                <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-sans font-bold">2</span>
+                <span>Homepage Hero Slides</span>
+              </div>
+              <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
+                <li><strong>What it is:</strong> These are the large full-width showcase photos that glide smoothly at the very top of your homepage.</li>
+                <li><strong>Adding a Slide:</strong> Switch to the <strong>Hero Carousel Slides</strong> tab, upload an image, and provide a short description.</li>
+                <li><strong>Changing the Order:</strong> Click <strong>▲ Move Up</strong> or <strong>▼ Move Down</strong> to decide which photo visitors see first.</li>
+                <li><strong>Deleting:</strong> Remove outdated photos with a single click.</li>
+              </ul>
+            </div>
+
+            {/* Guide Card 3 */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-sm font-serif">
+                <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-sans font-bold">3</span>
+                <span>Client Reviews &amp; Moderation</span>
+              </div>
+              <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
+                <li><strong>Customer Submissions:</strong> Reviews submitted by clients on your website arrive with a <strong>Pending</strong> badge.</li>
+                <li><strong>Approve &amp; Publish:</strong> Click <strong>Approve</strong> to display positive testimonials on the public Reviews page.</li>
+                <li><strong>Add Direct Reviews:</strong> You can also manually add reviews you received via text, phone, or in person.</li>
+              </ul>
+            </div>
+
+            {/* Guide Card 4 */}
+            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 sm:p-5 space-y-2.5">
+              <div className="flex items-center gap-2 text-amber-950 font-bold text-sm font-serif">
+                <span className="w-6 h-6 rounded-full bg-amber-600 text-white text-xs flex items-center justify-center font-sans font-bold">4</span>
+                <span>Publishing to the Live Site</span>
+              </div>
+              <ul className="text-xs text-slate-700 space-y-1.5 list-disc pl-5 leading-relaxed">
+                <li>Whenever you make changes, click the dark <strong>Update the Website</strong> button at the top.</li>
+                <li>Your updates are automatically saved and broadcast across all devices, phones, and computers.</li>
+                <li>Visitors to both <code>sistine.itsmyapp.co.uk</code> and your main website will immediately see the new work!</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Need to change technical cloud settings?</span>
+            <button
+              type="button"
+              onClick={() => {
+                setShowTokenSettings(!showTokenSettings);
+                setShowHelpGuide(false);
+              }}
+              className="text-amber-800 font-semibold hover:underline flex items-center gap-1"
+            >
+              <Key className="w-3.5 h-3.5" />
+              <span>Configure Cloud Access Key</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Cloud Access Key Settings Modal */}
       {showTokenSettings && (
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <Key className="w-4 h-4 text-amber-700" />
-              <span>GitHub Personal Access Token</span>
+              <span>Cloud Publishing Key</span>
             </h4>
             <button
               type="button"
@@ -601,7 +709,7 @@ export default function AdminPage() {
           </div>
 
           <p className="text-xs text-slate-600 leading-relaxed">
-            Provide a GitHub Personal Access Token (classic with <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono">repo</code> scope or fine-grained token with Contents Read/Write for <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono">itsmyapp-code/sistine</code>). This token is stored securely in your browser to commit live website changes.
+            If you manage website deployment credentials, you can save your publishing key here or in your Vercel Environment Variables (<code className="bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-mono">GITHUB_TOKEN</code>).
           </p>
 
           <form onSubmit={handleSaveGithubToken} className="space-y-3">
@@ -609,7 +717,7 @@ export default function AdminPage() {
               type="password"
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
-              placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              placeholder="Paste cloud access key..."
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
             />
             <div className="flex items-center gap-2">
@@ -617,7 +725,7 @@ export default function AdminPage() {
                 type="submit"
                 className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-sm"
               >
-                Save Token &amp; Enable Live Sync
+                Save Key
               </button>
               {githubToken && (
                 <button
@@ -626,12 +734,12 @@ export default function AdminPage() {
                     saveGitHubToken('');
                     setGithubToken('');
                     setTokenInput('');
-                    setSyncStatus({ msg: 'GitHub Token removed.', type: 'info' });
+                    setSyncStatus({ msg: 'Access key removed.', type: 'info' });
                     setShowTokenSettings(false);
                   }}
                   className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg"
                 >
-                  Clear Token
+                  Clear Key
                 </button>
               )}
             </div>
