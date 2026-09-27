@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import { Phone, Mail, MapPin, Lock } from 'lucide-react';
 import Logo from './Logo';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 
@@ -52,10 +51,6 @@ export default function Footer() {
               <Link href="/projects" className="block hover:text-white transition-colors">Our Work</Link>
               <Link href="/reviews" className="block hover:text-white transition-colors">Client Reviews</Link>
               <Link href="/contact" className="block hover:text-white transition-colors">Contact Us</Link>
-              <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-amber-300 mt-2 transition-colors">
-                <Lock className="w-3 h-3" />
-                <span>Client Portal</span>
-              </Link>
             </div>
           </div>
 
