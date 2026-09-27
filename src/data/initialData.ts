@@ -8,6 +8,8 @@ export const BUSINESS_CONFIG = {
   tagline: 'DECORATE • RESTORE • REFURBISH',
   legalName: 'Sistine Decorating',
   phone: '07803 258507',
+  whatsapp: '447803258507',
+  whatsappDisplay: '07803 258507',
   email: 'sistine@live.co.uk',
   dataPrivacyLeadEmail: 'sistine@live.co.uk',
   address: '15 Southtown, Dartmouth, Devon, TQ6 9BX',

@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { MapPin, ArrowRight, Layers, Camera } from 'lucide-react';
+import { MapPin, ArrowRight, Layers, Camera, ZoomIn } from 'lucide-react';
 import { Project } from '@/types';
 import { getStoredProjects } from '@/lib/storage';
 import ProjectGalleryModal from '@/components/ProjectGalleryModal';
@@ -125,6 +125,14 @@ function ProjectsContent() {
                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 text-white backdrop-blur-sm">
                       {project.category}
                     </span>
+                  </div>
+
+                  {/* Zoom in hover badge */}
+                  <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="bg-slate-900/80 backdrop-blur-sm text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg border border-white/20 transform scale-95 group-hover:scale-100 transition-transform">
+                      <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Click to view &amp; zoom</span>
+                    </div>
                   </div>
 
                   {/* Multiple Images Counter Pill */}

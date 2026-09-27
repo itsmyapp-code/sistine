@@ -70,12 +70,10 @@ export default function HeroCarousel() {
                 alt={slide.alt}
                 fill
                 sizes="100vw"
-                className="object-cover brightness-75 contrast-105"
+                className="object-cover"
                 priority={index === 0}
               />
             </div>
-            {/* Subtle cinematic gradient overlays */}
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/40 to-slate-950/80 pointer-events-none" />
           </div>
         );
       })}
