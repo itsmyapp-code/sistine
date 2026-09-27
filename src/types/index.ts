@@ -1,9 +1,7 @@
 export type ProjectCategory = 
   | 'Interior'
   | 'Exterior'
-  | 'Wallpapering'
-  | 'Restoration & Woodwork'
-  | 'Commercial';
+  | 'Wallpapering';
 
 export interface Project {
   id: string;
@@ -11,16 +9,17 @@ export interface Project {
   title: string;
   category: ProjectCategory;
   location: string;
-  beforeImage?: string;
-  afterImage: string;
+  afterImage: string; // Primary / cover photo
+  beforeImage?: string; // Optional before photo
+  images: string[]; // Multiple photos gallery of the work carried out
   description: string;
   scopeDetails?: string[];
-  featured: boolean;
+  featured?: boolean;
   publishedAt: string;
   isDraft?: boolean;
 }
 
-export type ReviewSource = 'Facebook' | 'Direct Quote' | 'Google Verified' | 'Houzz';
+export type ReviewSource = 'Facebook' | 'Direct Quote' | 'Google Verified';
 
 export interface Testimonial {
   id: string;
@@ -42,8 +41,8 @@ export interface QuoteFormData {
   postcode: string;
   address?: string;
   service: string;
-  propertyType: string;
-  timeframe: string;
+  propertyType?: string;
+  timeframe?: string;
   description: string;
   uploadedPhotos?: string[];
 }

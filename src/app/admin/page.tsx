@@ -10,8 +10,10 @@ import {
   Star, 
   CheckCircle, 
   RotateCcw, 
-  Sparkles, 
-  LogOut 
+  LogOut,
+  X,
+  Images,
+  Camera
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { Project, Testimonial, ProjectCategory, ReviewSource } from '@/types';
@@ -72,9 +74,9 @@ export default function AdminPage() {
   const [projectCategory, setProjectCategory] = useState<ProjectCategory>('Interior');
   const [projectLocation, setProjectLocation] = useState('Dartmouth');
   const [projectDescription, setProjectDescription] = useState('');
-  const [projectBeforeImage, setProjectBeforeImage] = useState<string>('');
-  const [projectAfterImage, setProjectAfterImage] = useState<string>('');
-  const [projectFeatured, setProjectFeatured] = useState(false);
+  const [projectImages, setProjectImages] = useState<string[]>([]);
+  const [projectScope1, setProjectScope1] = useState('');
+  const [projectScope2, setProjectScope2] = useState('');
   const [isCompressingProject, setIsCompressingProject] = useState(false);
   const [projectSuccessMsg, setProjectSuccessMsg] = useState('');
 
@@ -128,40 +130,50 @@ export default function AdminPage() {
     setPinInput('');
   };
 
-  const handleBeforeImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Multi-image file uploader with canvas compression
+  const handleMultipleImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
     setIsCompressingProject(true);
     try {
-      const compressed = await compressImage(file);
-      setProjectBeforeImage(compressed);
-    } catch {
-      alert('Error processing before image');
+      const compressedList: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const compressed = await compressImage(files[i]);
+        compressedList.push(compressed);
+      }
+      setProjectImages(prev => [...prev, ...compressedList]);
+    } catch (err) {
+      console.error(err);
+      alert('Error processing one or more photos.');
     } finally {
       setIsCompressingProject(false);
     }
   };
 
-  const handleAfterImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsCompressingProject(true);
-    try {
-      const compressed = await compressImage(file);
-      setProjectAfterImage(compressed);
-    } catch {
-      alert('Error processing after image');
-    } finally {
-      setIsCompressingProject(false);
-    }
+  const removePhoto = (index: number) => {
+    setProjectImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const setAsCoverPhoto = (index: number) => {
+    if (index === 0) return;
+    setProjectImages(prev => {
+      const copy = [...prev];
+      const selected = copy.splice(index, 1)[0];
+      return [selected, ...copy];
+    });
   };
 
   const handleCreateProject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectAfterImage) {
-      alert('Please upload an After image.');
+    if (projectImages.length === 0) {
+      alert('Please upload at least one photo of the work carried out.');
       return;
     }
+
+    const scopeList: string[] = [];
+    if (projectScope1.trim()) scopeList.push(projectScope1.trim());
+    if (projectScope2.trim()) scopeList.push(projectScope2.trim());
 
     const newProj: Project = {
       id: `proj-${Date.now()}`,
@@ -169,24 +181,26 @@ export default function AdminPage() {
       title: projectTitle,
       category: projectCategory,
       location: projectLocation,
-      beforeImage: projectBeforeImage || undefined,
-      afterImage: projectAfterImage,
+      afterImage: projectImages[0], // First image is cover
+      beforeImage: projectImages.length > 1 ? projectImages[projectImages.length - 1] : undefined,
+      images: projectImages, // Full gallery of work
       description: projectDescription,
-      featured: projectFeatured,
+      scopeDetails: scopeList.length > 0 ? scopeList : undefined,
+      featured: false,
       publishedAt: new Date().toISOString().split('T')[0],
     };
 
     const updated = [newProj, ...projects];
     saveStoredProjects(updated);
     setProjects(updated);
-    setProjectSuccessMsg('Project published to portfolio!');
+    setProjectSuccessMsg(`Project with ${projectImages.length} photos published to portfolio!`);
 
     setProjectTitle('');
     setProjectLocation('Dartmouth');
     setProjectDescription('');
-    setProjectBeforeImage('');
-    setProjectAfterImage('');
-    setProjectFeatured(false);
+    setProjectImages([]);
+    setProjectScope1('');
+    setProjectScope2('');
 
     setTimeout(() => setProjectSuccessMsg(''), 4000);
   };
@@ -244,7 +258,7 @@ export default function AdminPage() {
               Sistine Admin Portal
             </h1>
             <p className="text-xs text-slate-500">
-              Enter PIN to manage projects and client reviews.
+              Enter PIN to manage project photo galleries and client reviews.
             </p>
           </div>
 
@@ -294,7 +308,7 @@ export default function AdminPage() {
             Sistine Decorating Portal
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Manage your Dartmouth portfolio photos and reviews.
+            Upload multiple photos of completed work, before/after shots, and client reviews.
           </p>
         </div>
 
@@ -302,7 +316,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => {
-              if (confirm('Reset to initial Dartmouth projects?')) {
+              if (confirm('Reset to initial Dartmouth projects with multiple photos?')) {
                 resetToDefaults();
                 loadAllData();
               }
@@ -334,7 +348,7 @@ export default function AdminPage() {
               : 'bg-white text-slate-700 border border-slate-200'
           }`}
         >
-          Projects ({projects.length})
+          Job Galleries ({projects.length})
         </button>
         <button
           type="button"
@@ -349,25 +363,30 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* Projects Form & List */}
+      {/* Projects Tab */}
       {activeTab === 'projects' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h2 className="text-xl font-serif font-bold text-slate-900">Add Project</h2>
+          {/* Uploader Form */}
+          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div>
+              <h2 className="text-xl font-serif font-bold text-slate-900">Add New Job &amp; Photos</h2>
+              <p className="text-xs text-slate-500">Upload multiple photos of work carried out on this job.</p>
+            </div>
+
             {projectSuccessMsg && (
               <p className="p-2.5 bg-emerald-50 text-emerald-800 text-xs rounded-lg">{projectSuccessMsg}</p>
             )}
 
             <form onSubmit={handleCreateProject} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1">Title</label>
+                <label className="block text-xs font-semibold uppercase mb-1">Project / Job Title *</label>
                 <input
                   type="text"
                   required
                   value={projectTitle}
                   onChange={(e) => setProjectTitle(e.target.value)}
-                  placeholder="e.g. Southtown Victorian Hallway"
+                  placeholder="e.g. Victorian Drawing Room &amp; Cornice Painting"
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                 />
               </div>
@@ -392,74 +411,160 @@ export default function AdminPage() {
                     required
                     value={projectLocation}
                     onChange={(e) => setProjectLocation(e.target.value)}
-                    placeholder="e.g. Dartmouth"
+                    placeholder="e.g. Southtown, Dartmouth"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1">Description</label>
+                <label className="block text-xs font-semibold uppercase mb-1">Job Description</label>
                 <textarea
                   required
                   rows={3}
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
-                  placeholder="Short description of the decorating work..."
+                  placeholder="Details of the work carried out, room preparation, paint finishes applied..."
                   className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                 />
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1">Before Photo (Optional)</label>
-                  <input type="file" accept="image/*" onChange={handleBeforeImageFile} className="text-xs" />
-                  {projectBeforeImage && <p className="text-xs text-emerald-600 mt-1">✓ Before loaded</p>}
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1">After Photo (Required) *</label>
-                  <input type="file" accept="image/*" onChange={handleAfterImageFile} className="text-xs" />
-                  {projectAfterImage && <p className="text-xs text-emerald-600 mt-1">✓ After loaded</p>}
-                </div>
+              {/* Multiple Image Upload Dropzone */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold uppercase">
+                  Job Photos (Upload Multiple) *
+                </label>
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-slate-800 rounded-xl bg-slate-50 cursor-pointer transition-colors group">
+                  <Upload className="w-6 h-6 text-slate-400 group-hover:text-slate-800 mb-1" />
+                  <span className="text-xs font-semibold text-slate-700">Click to Select Photos</span>
+                  <span className="text-[11px] text-slate-400">Select multiple files from your computer or phone</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleMultipleImagesUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Uploaded Photos Grid & Management */}
+                {projectImages.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <p className="text-xs font-semibold text-slate-700">
+                      {projectImages.length} Photo(s) Attached (First photo is Main Cover):
+                    </p>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {projectImages.map((img, idx) => (
+                        <div key={idx} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-slate-200 group bg-slate-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                          
+                          {idx === 0 && (
+                            <span className="absolute bottom-1 left-1 bg-amber-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                              Cover
+                            </span>
+                          )}
+
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-1">
+                            {idx !== 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setAsCoverPhoto(idx)}
+                                className="px-1.5 py-1 rounded bg-white text-slate-900 text-[10px] font-semibold"
+                                title="Make Cover Photo"
+                              >
+                                Set Cover
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removePhoto(idx)}
+                              className="p-1 rounded bg-rose-600 text-white"
+                              title="Delete Photo"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Scope highlights */}
+              <div className="space-y-2 pt-1">
+                <label className="block text-xs font-semibold uppercase">Key Details (Optional)</label>
+                <input
+                  type="text"
+                  value={projectScope1}
+                  onChange={(e) => setProjectScope1(e.target.value)}
+                  placeholder="e.g. Farrow & Ball Estate Emulsion applied"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs"
+                />
+                <input
+                  type="text"
+                  value={projectScope2}
+                  onChange={(e) => setProjectScope2(e.target.value)}
+                  placeholder="e.g. Satinwood finish on all skirting boards"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs"
+                />
               </div>
 
               <button
                 type="submit"
-                disabled={isCompressingProject}
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all"
+                disabled={isCompressingProject || projectImages.length === 0}
+                className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isCompressingProject ? 'Processing...' : 'Publish Project'}
+                <Plus className="w-4 h-4" />
+                <span>{isCompressingProject ? 'Compressing Photos...' : `Publish Job (${projectImages.length} Photos)`}</span>
               </button>
             </form>
           </div>
 
-          <div className="lg:col-span-7 space-y-3">
-            <h2 className="text-xl font-serif font-bold text-slate-900">Current Projects ({projects.length})</h2>
-            {projects.map((p) => (
-              <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.afterImage} alt={p.title} className="w-14 h-14 rounded-lg object-cover" />
-                  <div>
-                    <h3 className="font-serif font-bold text-sm text-slate-900">{p.title}</h3>
-                    <p className="text-xs text-slate-500">{p.category} • {p.location}</p>
+          {/* Active Projects List */}
+          <div className="lg:col-span-6 space-y-3">
+            <h2 className="text-xl font-serif font-bold text-slate-900">
+              Active Job Galleries ({projects.length})
+            </h2>
+
+            <div className="space-y-3">
+              {projects.map((p) => {
+                const count = p.images?.length || (p.beforeImage ? 2 : 1);
+                return (
+                  <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 flex items-start justify-between gap-4 shadow-xs">
+                    <div className="flex items-start gap-3">
+                      <div className="relative w-16 h-14 rounded-lg overflow-hidden bg-slate-900 shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.afterImage} alt={p.title} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[9px] px-1 rounded">
+                          {count}📷
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-1">{p.title}</h3>
+                        <p className="text-xs text-slate-500">{p.category} • {p.location}</p>
+                        <p className="text-[11px] text-slate-400 mt-1">{count} photos in gallery</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteProject(p.id)}
+                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded shrink-0"
+                      title="Delete job"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteProject(p.id)}
-                  className="p-1.5 text-rose-600 hover:bg-rose-50 rounded"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
 
         </div>
       )}
 
-      {/* Testimonials Form & List */}
+      {/* Testimonials Tab */}
       {activeTab === 'testimonials' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">

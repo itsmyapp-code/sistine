@@ -12,19 +12,18 @@ import {
   Paintbrush, 
   Home, 
   Layers, 
-  Check, 
-  ShieldCheck,
-  CheckCircle2
+  Camera
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { Project, Testimonial } from '@/types';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 import { getStoredProjects, getStoredTestimonials } from '@/lib/storage';
+import ProjectGalleryModal from '@/components/ProjectGalleryModal';
 
 export default function HomePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [activeProjectView, setActiveProjectView] = useState<{ [key: string]: 'after' | 'before' }>({});
+  const [selectedGalleryProject, setSelectedGalleryProject] = useState<Project | null>(null);
 
   useEffect(() => {
     const load = () => {
@@ -35,10 +34,6 @@ export default function HomePage() {
     window.addEventListener('apex_data_updated', load);
     return () => window.removeEventListener('apex_data_updated', load);
   }, []);
-
-  const toggleView = (id: string, view: 'after' | 'before') => {
-    setActiveProjectView(prev => ({ ...prev, [id]: view }));
-  };
 
   const services = [
     {
@@ -70,10 +65,8 @@ export default function HomePage() {
   return (
     <div className="space-y-0 pb-0">
       
-      {/* 1. HERO SECTION (Ship Inn style with centered circular badge) */}
+      {/* 1. HERO SECTION */}
       <section className="relative h-[80vh] md:h-[90vh] w-full overflow-hidden bg-slate-950 text-white flex items-center justify-center">
-        
-        {/* Background Image with warm coastal dusk overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=85"
@@ -86,13 +79,9 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/40 to-slate-950/80" />
         </div>
 
-        {/* Hero Center Content */}
         <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 sm:space-y-8 animate-in fade-in duration-700">
-          
-          {/* Circular Badge Logo */}
           <Logo variant="circle" />
 
-          {/* Headline */}
           <div className="space-y-2">
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-normal tracking-tight text-white drop-shadow-md">
               <span className="block text-slate-200 text-xl sm:text-3xl mb-2 font-sans font-light tracking-wide uppercase">
@@ -107,7 +96,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-2">
             <Link
               href="/projects"
@@ -125,11 +113,10 @@ export default function HomePage() {
               <span>Contact Us</span>
             </Link>
           </div>
-
         </div>
       </section>
 
-      {/* 2. INTRODUCTION & STORY (Just like The Ship Inn) */}
+      {/* 2. INTRODUCTION & STORY */}
       <section className="py-16 sm:py-24 bg-[#faf9f5]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
@@ -150,7 +137,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 3 Simple Service Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
             {services.map((item, idx) => {
               const IconComp = item.icon;
@@ -210,70 +196,55 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.slice(0, 3).map((project) => {
-              const currentView = activeProjectView[project.id] || 'after';
-              const imgUrl = currentView === 'before' && project.beforeImage ? project.beforeImage : project.afterImage;
+              const photoCount = project.images && project.images.length > 0 ? project.images.length : 1;
 
               return (
                 <div
                   key={project.id}
-                  className="bg-[#faf9f5] rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                  onClick={() => setSelectedGalleryProject(project)}
+                  className="group cursor-pointer bg-[#faf9f5] rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                 >
-                  {/* Photo Container */}
-                  <div className="relative aspect-[4/3] w-full bg-slate-900">
+                  <div className="relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
                     <Image
-                      src={imgUrl}
+                      src={project.afterImage}
                       alt={project.title}
                       fill
                       sizes="(max-width: 768px) 100vw, 400px"
-                      className="object-cover"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     
-                    {/* Category */}
                     <div className="absolute top-3 left-3">
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 text-white backdrop-blur-sm">
                         {project.category}
                       </span>
                     </div>
 
-                    {/* Simple Before/After Toggle */}
-                    {project.beforeImage && (
-                      <div className="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1 text-xs text-white">
-                        <button
-                          type="button"
-                          onClick={() => toggleView(project.id, 'before')}
-                          className={`px-2 py-0.5 rounded transition-colors ${
-                            currentView === 'before' ? 'bg-amber-600 text-white' : 'text-slate-300'
-                          }`}
-                        >
-                          Before
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toggleView(project.id, 'after')}
-                          className={`px-2 py-0.5 rounded transition-colors ${
-                            currentView === 'after' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-300'
-                          }`}
-                        >
-                          After
-                        </button>
-                      </div>
-                    )}
+                    <div className="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-medium text-white shadow">
+                      <Camera className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{photoCount} Photos</span>
+                    </div>
                   </div>
 
-                  {/* Body Content */}
-                  <div className="p-6 space-y-3">
-                    <div className="flex items-center gap-1.5 text-xs text-amber-800 font-medium">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{project.location}</span>
+                  <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs text-amber-800 font-medium">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{project.location}</span>
+                      </div>
+
+                      <h3 className="text-xl font-serif font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
+                        {project.title}
+                      </h3>
+
+                      <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">
+                        {project.description}
+                      </p>
                     </div>
 
-                    <h3 className="text-xl font-serif font-bold text-slate-900">
-                      {project.title}
-                    </h3>
-
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {project.description}
-                    </p>
+                    <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between text-xs font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">
+                      <span>View Gallery Photos</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
               );
@@ -332,7 +303,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. CALL TO ACTION SECTION (Ship Inn style) */}
+      {/* 5. CALL TO ACTION SECTION */}
       <section className="relative py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white overflow-hidden">
         <div className="relative max-w-4xl mx-auto text-center px-6 space-y-6">
           <span className="inline-block bg-amber-400/20 text-amber-300 font-sans font-semibold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-amber-400/30">
@@ -362,6 +333,12 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Gallery Modal */}
+      <ProjectGalleryModal
+        project={selectedGalleryProject}
+        onClose={() => setSelectedGalleryProject(null)}
+      />
 
     </div>
   );

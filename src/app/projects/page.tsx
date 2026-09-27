@@ -3,14 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, ArrowRight } from 'lucide-react';
+import { MapPin, ArrowRight, Layers, Camera } from 'lucide-react';
 import { Project } from '@/types';
 import { getStoredProjects } from '@/lib/storage';
+import ProjectGalleryModal from '@/components/ProjectGalleryModal';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [activeViews, setActiveViews] = useState<{ [key: string]: 'after' | 'before' }>({});
+  const [selectedProjectForGallery, setSelectedProjectForGallery] = useState<Project | null>(null);
 
   useEffect(() => {
     const load = () => {
@@ -20,10 +21,6 @@ export default function ProjectsPage() {
     window.addEventListener('apex_data_updated', load);
     return () => window.removeEventListener('apex_data_updated', load);
   }, []);
-
-  const toggleView = (id: string, view: 'after' | 'before') => {
-    setActiveViews(prev => ({ ...prev, [id]: view }));
-  };
 
   const categories = ['All', 'Interior', 'Exterior', 'Wallpapering'];
 
@@ -37,17 +34,17 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
         <span className="text-xs font-semibold tracking-widest text-amber-800 uppercase bg-amber-100 px-4 py-1.5 rounded-full">
-          Portfolio
+          Portfolio &amp; Work Completed
         </span>
         <h1 className="text-3xl sm:text-5xl font-serif text-slate-900">
           Our Recent Work
         </h1>
         <p className="text-base sm:text-lg text-slate-600 font-light leading-relaxed">
-          A selection of residential painting, exterior finishes, and wallpapering completed throughout Dartmouth, Kingswear, and the South Hams.
+          Browse through completed painting and decorating projects across Dartmouth and the South Hams. Click any job to view the full photo gallery.
         </p>
       </div>
 
-      {/* Simple Category Tabs */}
+      {/* Category Tabs */}
       <div className="flex flex-wrap items-center justify-center gap-2 border-b border-slate-200 pb-6">
         {categories.map((cat) => (
           <button
@@ -68,81 +65,70 @@ export default function ProjectsPage() {
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
         {filteredProjects.map((project) => {
-          const currentView = activeViews[project.id] || 'after';
-          const imgUrl = currentView === 'before' && project.beforeImage ? project.beforeImage : project.afterImage;
+          const photoCount = project.images && project.images.length > 0 ? project.images.length : (project.beforeImage ? 2 : 1);
 
           return (
             <div
               key={project.id}
-              className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+              onClick={() => setSelectedProjectForGallery(project)}
+              className="group cursor-pointer bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
             >
-              <div className="relative aspect-[4/3] w-full bg-slate-900">
+              <div className="relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
                 <Image
-                  src={imgUrl}
+                  src={project.afterImage}
                   alt={project.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 400px"
-                  className="object-cover"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 
+                {/* Category Pill */}
                 <div className="absolute top-3 left-3">
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 text-white backdrop-blur-sm">
                     {project.category}
                   </span>
                 </div>
 
-                {project.beforeImage && (
-                  <div className="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-sm p-1 rounded-lg flex items-center gap-1 text-xs text-white">
-                    <button
-                      type="button"
-                      onClick={() => toggleView(project.id, 'before')}
-                      className={`px-2 py-0.5 rounded transition-colors ${
-                        currentView === 'before' ? 'bg-amber-600 text-white' : 'text-slate-300'
-                      }`}
-                    >
-                      Before
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toggleView(project.id, 'after')}
-                      className={`px-2 py-0.5 rounded transition-colors ${
-                        currentView === 'after' ? 'bg-white text-slate-900 font-semibold' : 'text-slate-300'
-                      }`}
-                    >
-                      After
-                    </button>
-                  </div>
-                )}
+                {/* Multiple Images Counter Pill */}
+                <div className="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1.5 text-xs font-medium text-white shadow">
+                  <Camera className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{photoCount} Photos</span>
+                </div>
               </div>
 
-              <div className="p-6 space-y-3">
-                <div className="flex items-center gap-1.5 text-xs text-amber-800 font-medium">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{project.location}</span>
+              <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs text-amber-800 font-medium">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{project.location}</span>
+                  </div>
+
+                  <h3 className="text-xl font-serif font-bold text-slate-900 group-hover:text-amber-800 transition-colors">
+                    {project.title}
+                  </h3>
+
+                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+                    {project.description}
+                  </p>
                 </div>
 
-                <h3 className="text-xl font-serif font-bold text-slate-900">
-                  {project.title}
-                </h3>
-
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {project.description}
-                </p>
-
-                {project.scopeDetails && (
-                  <ul className="pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
-                    {project.scopeDetails.map((s, idx) => (
-                      <li key={idx}>• {s}</li>
-                    ))}
-                  </ul>
-                )}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">
+                  <span>View All {photoCount} Photos &amp; Job Details</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* Simple CTA */}
+      {/* Gallery Modal */}
+      <ProjectGalleryModal
+        project={selectedProjectForGallery}
+        onClose={() => setSelectedProjectForGallery(null)}
+      />
+
+      {/* CTA */}
       <div className="bg-[#f5f3ee] rounded-3xl p-8 sm:p-12 text-center space-y-4 max-w-3xl mx-auto border border-slate-200">
         <h2 className="text-2xl sm:text-3xl font-serif text-slate-900">
           Interested in discussing your home?

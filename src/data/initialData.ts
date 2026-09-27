@@ -30,8 +30,14 @@ export const INITIAL_PROJECTS: Project[] = [
     title: 'Dartmouth Townhouse Interior Decorating',
     category: 'Interior',
     location: 'Southtown, Dartmouth',
-    beforeImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
     afterImage: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80',
+    beforeImage: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80'
+    ],
     description: 'Complete interior redecoration of a traditional Southtown Dartmouth property. Preparation of walls, ceilings, and woodwork finished in contemporary coastal neutral tones.',
     scopeDetails: [
       'Full surface preparation & dust-controlled sanding',
@@ -47,8 +53,13 @@ export const INITIAL_PROJECTS: Project[] = [
     title: 'Coastal Exterior Painting & Facade',
     category: 'Exterior',
     location: 'Kingswear, River Dart',
-    beforeImage: 'https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=80',
     afterImage: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+    beforeImage: 'https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1541123437800-1bb1317badc2?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80'
+    ],
     description: 'Protective exterior masonry painting tailored for coastal weather exposure overlooking the River Dart. High-durability weather-shield coatings.',
     scopeDetails: [
       'Pressure washing and fungal wash treatment',
@@ -64,8 +75,13 @@ export const INITIAL_PROJECTS: Project[] = [
     title: 'Feature Wallpapering & Master Bedroom',
     category: 'Wallpapering',
     location: 'Stoke Fleming, South Devon',
-    beforeImage: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=80',
     afterImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+    beforeImage: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80'
+    ],
     description: 'Precision hanging of designer botanical patterned wallpaper with matching painted woodwork in soft muted tones.',
     scopeDetails: [
       'Lining paper preparation for perfectly flat foundation',
@@ -81,8 +97,12 @@ export const INITIAL_PROJECTS: Project[] = [
     title: 'Riverside Cottage Redecoration',
     category: 'Interior',
     location: 'Dittisham, Devon',
-    beforeImage: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
     afterImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    beforeImage: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80'
+    ],
     description: 'Fresh, bright coastal interior update for a charming holiday cottage in Dittisham. Clean white ceilings, warm stone walls, and durable woodwork.',
     scopeDetails: [
       'Plaster smoothing and spot repairs',
