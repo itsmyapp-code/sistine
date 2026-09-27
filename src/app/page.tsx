@@ -254,7 +254,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. CLIENT REVIEWS SECTION */}
+      {/* 4. CLIENT REVIEWS SECTION (Clean without Facebook/source badges) */}
       <section className="py-16 sm:py-20 bg-[#f5f3ee] border-t border-slate-200/80">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
@@ -287,14 +287,9 @@ export default function HomePage() {
                   </blockquote>
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
-                    <p className="text-xs text-slate-500">{test.location}</p>
-                  </div>
-                  <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                    {test.source}
-                  </span>
+                <div className="pt-4 border-t border-slate-100">
+                  <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
+                  <p className="text-xs text-slate-500">{test.location}</p>
                 </div>
               </div>
             ))}

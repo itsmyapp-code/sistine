@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Star, CheckCircle, ExternalLink, Plus } from 'lucide-react';
+import { Star, CheckCircle } from 'lucide-react';
 import { Testimonial } from '@/types';
 import { getStoredTestimonials, saveStoredTestimonials } from '@/lib/storage';
-import { BUSINESS_CONFIG } from '@/data/initialData';
 
 export default function ReviewsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -70,7 +68,7 @@ export default function ReviewsPage() {
         </p>
       </div>
 
-      {/* Top Banner with Facebook Link */}
+      {/* Top Banner with Add Review Action */}
       <div className="bg-[#f5f3ee] rounded-2xl p-6 sm:p-8 border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-1 text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-500">
@@ -80,31 +78,20 @@ export default function ReviewsPage() {
           </div>
           <h2 className="text-lg font-serif font-bold text-slate-900">5-Star Rated Local Decorating</h2>
           <p className="text-xs sm:text-sm text-slate-600">
-            See more photos and customer updates on our official Facebook page.
+            Authentic customer reviews from residential projects in Dartmouth and surrounding villages.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <a
-            href={BUSINESS_CONFIG.facebook}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-all shadow-sm"
-          >
-            <span>Visit Facebook: {BUSINESS_CONFIG.facebookHandle}</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs sm:text-sm font-semibold transition-all"
-          >
-            Leave Review
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="px-6 py-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-semibold transition-all shadow-sm shrink-0"
+        >
+          Leave a Review
+        </button>
       </div>
 
-      {/* Testimonials Grid */}
+      {/* Testimonials Grid (Clean cards without social badges) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
         {testimonials.map((test) => (
           <div
@@ -125,23 +112,18 @@ export default function ReviewsPage() {
               </blockquote>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
-                <p className="text-xs text-slate-500">{test.location}</p>
-              </div>
-              <span className="text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                {test.source}
-              </span>
+            <div className="pt-4 border-t border-slate-100">
+              <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
+              <p className="text-xs text-slate-500">{test.location}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Review Submission Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg bg-white rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-200">
+          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200">
             <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Leave a Client Review</h3>
             {submitted ? (
               <div className="py-8 text-center space-y-2">
