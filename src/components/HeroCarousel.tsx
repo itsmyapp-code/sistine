@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
-import Logo from './Logo';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 
 import { getStoredHeroSlides } from '@/lib/storage';
@@ -83,9 +82,6 @@ export default function HeroCarousel() {
 
       {/* Hero Center Overlay Content */}
       <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 sm:space-y-8 animate-in fade-in duration-700">
-        
-        {/* Circular Sistine Dome Badge */}
-        <Logo variant="circle" />
 
         {/* Headline */}
         <div className="space-y-2">
