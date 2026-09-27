@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,41 +12,35 @@ const inter = Inter({
   display: "swap",
 });
 
-const outfit = Outfit({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-playfair",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Apex Decorating & Restoration | Master Painters & Decorators Cheltenham, Bath & Cotswolds",
-    template: "%s | Apex Decorating & Restoration",
+    default: "Sistine Decorating | Painters & Decorators Dartmouth, Devon",
+    template: "%s | Sistine Decorating",
   },
-  description: "Specialist master painters, heritage property restoration, airless kitchen spray finishes, and designer wallpapering across Cheltenham, Bath, Bristol and the Cotswolds. £5M insured.",
+  description: "Professional painting and decorating in Dartmouth, Kingswear, Stoke Fleming & the South Hams. Interior and exterior residential decorating with quality finishes.",
   keywords: [
-    "painter and decorator Cheltenham",
-    "heritage property restoration Bath",
-    "sash window repair bio resin",
-    "kitchen spray painting Bristol",
-    "specialist wallpaper hanger Cotswolds",
-    "Farrow and Ball painters",
-    "commercial decorator Gloucestershire"
+    "painter and decorator Dartmouth",
+    "Sistine Decorating Dartmouth",
+    "painting Southtown Dartmouth",
+    "interior painters Kingswear",
+    "exterior decorating South Devon",
+    "wallpapering Dartmouth"
   ],
-  authors: [{ name: "Apex Decorating & Restoration" }],
-  creator: "Apex Decorating & Restoration",
+  authors: [{ name: "Sistine Decorating" }],
+  creator: "Sistine Decorating",
   publisher: "developer.itsmyapp.co.uk",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
   openGraph: {
-    title: "Apex Decorating & Restoration | Master Craftsmen",
-    description: "Premium residential and commercial painting, sash window restoration, and fine finish spraying in Cheltenham, Bath & Cotswolds.",
+    title: "Sistine Decorating | Dartmouth & South Devon",
+    description: "Quality residential painting and decorating services across Dartmouth, Kingswear and the South Hams.",
     type: "website",
     locale: "en_GB",
-    siteName: "Apex Decorating & Restoration",
+    siteName: "Sistine Decorating",
   },
   robots: {
     index: true,
@@ -55,7 +49,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: "#1e293b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -67,11 +61,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-GB" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="flex flex-col min-h-screen bg-[#fcfbf7] text-slate-900 selection:bg-amber-100 selection:text-amber-900">
+    <html lang="en-GB" className={`${inter.variable} ${playfair.variable}`}>
+      <body className="flex flex-col min-h-screen bg-[#faf9f5] text-slate-800 selection:bg-amber-100 selection:text-amber-900 font-sans">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-amber-600 text-white font-bold rounded shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-slate-900 text-white font-bold rounded shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
         >
           Skip to main content
         </a>
