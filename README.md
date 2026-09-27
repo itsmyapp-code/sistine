@@ -47,10 +47,10 @@ A responsive, high-performance, tradesman-grade website and admin management sys
 ## 🔒 Mandatory Governance & Transparency
 - **`INTERNAL_GOVERNANCE.md`**:
   - **LOG A:** Statutory Data Protection Officer (DPO) Need Assessment (confirming no mandatory DPO requirement under UK GDPR Article 37(1)).
-  - **LOG B:** Voluntary Data Privacy Lead Formal Appointment mapped to `hello@itsmyapp.co.uk`.
+  - **LOG B:** Voluntary Data Privacy Lead Formal Appointment mapped to `sistine@live.co.uk`.
 - **Public Transparency Callout**:
   > **Data Privacy & Compliance Queries:**
-  > For any questions regarding your data rights, or to submit an inquiry, please contact our Data Privacy Lead directly at [hello@itsmyapp.co.uk](mailto:hello@itsmyapp.co.uk). We formally acknowledge all compliance submissions within 30 days.
+  > For any questions regarding your data rights, or to submit an inquiry, please contact our Data Privacy Lead directly at [sistine@live.co.uk](mailto:sistine@live.co.uk). We formally acknowledge all compliance submissions within 30 days.
 
 ---
 

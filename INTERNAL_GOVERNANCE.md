@@ -13,5 +13,5 @@
 
 ## LOG B: Voluntary Data Privacy Lead (DPL) Formal Appointment
 - **Appointed Role:** Data Privacy Lead (DPL)
-- **Contact Channel:** [hello@itsmyapp.co.uk](mailto:hello@itsmyapp.co.uk)
+- **Contact Channel:** [sistine@live.co.uk](mailto:sistine@live.co.uk)
 - **SLA:** Formal acknowledgment and response within **30 calendar days** for all data rights inquiries.

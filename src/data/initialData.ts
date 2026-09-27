@@ -6,7 +6,7 @@ export const BUSINESS_CONFIG = {
   legalName: 'Sistine Decorating',
   phone: '07803 258507',
   email: 'sistine@live.co.uk',
-  dataPrivacyLeadEmail: 'hello@itsmyapp.co.uk',
+  dataPrivacyLeadEmail: 'sistine@live.co.uk',
   address: '15 Southtown, Dartmouth, Devon, TQ6 9BX',
   postcode: 'TQ6 9BX',
   facebook: 'https://facebook.com/Sistine',
