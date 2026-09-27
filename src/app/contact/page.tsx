@@ -12,21 +12,45 @@ export default function ContactPage() {
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage('');
+
     try {
-      await fetch('/api/quote', {
+      const response = await fetch('https://formspree.io/f/xoevkgqv', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName: name, phone, email, service, description: message, postcode: 'Dartmouth' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          phone,
+          email,
+          service,
+          message,
+          _subject: `New Decorating Inquiry from ${name} (${service})`,
+        }),
       });
-    } catch {}
-    setTimeout(() => {
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await response.json();
+        if (data && data.errors) {
+          setErrorMessage(data.errors.map((err: any) => err.message).join(', '));
+        } else {
+          setErrorMessage('There was a problem submitting your form. Please try again or call us directly.');
+        }
+      }
+    } catch (err) {
+      setErrorMessage('Network error submitting your form. Please call us directly on 07803 258507.');
+    } finally {
       setLoading(false);
-      setSubmitted(true);
-    }, 600);
+    }
   };
 
   return (
@@ -141,6 +165,12 @@ export default function ContactPage() {
             Leave your contact details and a brief outline of the painting or decorating you require.
           </p>
 
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+              {errorMessage}
+            </div>
+          )}
+
           {submitted ? (
             <div className="py-12 text-center space-y-4">
               <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto" />
@@ -152,6 +182,7 @@ export default function ContactPage() {
                 type="button"
                 onClick={() => {
                   setSubmitted(false);
+                  setErrorMessage('');
                   setName('');
                   setPhone('');
                   setEmail('');
@@ -168,6 +199,7 @@ export default function ContactPage() {
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Your Name *</label>
                 <input
                   type="text"
+                  name="name"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -181,6 +213,7 @@ export default function ContactPage() {
                   <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Phone Number *</label>
                   <input
                     type="tel"
+                    name="phone"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -193,6 +226,7 @@ export default function ContactPage() {
                   <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Email Address *</label>
                   <input
                     type="email"
+                    name="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -205,6 +239,7 @@ export default function ContactPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Service Needed</label>
                 <select
+                  name="service"
                   value={service}
                   onChange={(e) => setService(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
@@ -219,6 +254,7 @@ export default function ContactPage() {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Message / Project Outline</label>
                 <textarea
+                  name="message"
                   rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
