@@ -12,11 +12,12 @@ import {
   RotateCcw, 
   LogOut,
   X,
-  Images,
-  Camera
+  Clock,
+  Check,
+  ShieldCheck
 } from 'lucide-react';
 import Logo from '@/components/Logo';
-import { Project, Testimonial, ProjectCategory, ReviewSource } from '@/types';
+import { Project, Testimonial, ProjectCategory } from '@/types';
 import { 
   getStoredProjects, 
   saveStoredProjects, 
@@ -86,7 +87,6 @@ export default function AdminPage() {
   const [testProjectType, setTestProjectType] = useState('Interior Painting');
   const [testRating, setTestRating] = useState(5);
   const [testReviewText, setTestReviewText] = useState('');
-  const [testSource, setTestSource] = useState<ReviewSource>('Facebook');
   const [testSuccessMsg, setTestSuccessMsg] = useState('');
 
   useEffect(() => {
@@ -130,7 +130,7 @@ export default function AdminPage() {
     setPinInput('');
   };
 
-  // Multi-image file uploader with canvas compression
+  // Multi-image file uploader
   const handleMultipleImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -181,9 +181,9 @@ export default function AdminPage() {
       title: projectTitle,
       category: projectCategory,
       location: projectLocation,
-      afterImage: projectImages[0], // First image is cover
+      afterImage: projectImages[0],
       beforeImage: projectImages.length > 1 ? projectImages[projectImages.length - 1] : undefined,
-      images: projectImages, // Full gallery of work
+      images: projectImages,
       description: projectDescription,
       scopeDetails: scopeList.length > 0 ? scopeList : undefined,
       featured: false,
@@ -193,7 +193,7 @@ export default function AdminPage() {
     const updated = [newProj, ...projects];
     saveStoredProjects(updated);
     setProjects(updated);
-    setProjectSuccessMsg(`Project with ${projectImages.length} photos published to portfolio!`);
+    setProjectSuccessMsg(`Project with ${projectImages.length} photos published!`);
 
     setProjectTitle('');
     setProjectLocation('Dartmouth');
@@ -213,6 +213,7 @@ export default function AdminPage() {
     }
   };
 
+  // Direct Admin Review Creation (automatically approved)
   const handleCreateTestimonial = (e: React.FormEvent) => {
     e.preventDefault();
     const newTest: Testimonial = {
@@ -222,15 +223,14 @@ export default function AdminPage() {
       projectType: testProjectType,
       rating: testRating,
       reviewText: testReviewText,
-      source: testSource,
+      status: 'approved', // Created by admin directly
       publishedAt: new Date().toISOString().split('T')[0],
-      verifiedLink: testSource === 'Facebook' ? 'https://facebook.com/Sistine' : undefined,
     };
 
     const updated = [newTest, ...testimonials];
     saveStoredTestimonials(updated);
     setTestimonials(updated);
-    setTestSuccessMsg('Testimonial published!');
+    setTestSuccessMsg('Testimonial approved & published!');
 
     setTestClientName('');
     setTestLocation('Dartmouth');
@@ -240,13 +240,26 @@ export default function AdminPage() {
     setTimeout(() => setTestSuccessMsg(''), 4000);
   };
 
+  // Approve a pending review
+  const handleApproveReview = (id: string) => {
+    const updated = testimonials.map(t => t.id === id ? { ...t, status: 'approved' as const } : t);
+    saveStoredTestimonials(updated);
+    setTestimonials(updated);
+    setTestSuccessMsg('Review approved and published to website!');
+    setTimeout(() => setTestSuccessMsg(''), 4000);
+  };
+
+  // Reject / Delete a review
   const handleDeleteTestimonial = (id: string) => {
-    if (confirm('Delete this testimonial?')) {
+    if (confirm('Are you sure you want to delete this review?')) {
       const updated = testimonials.filter((t) => t.id !== id);
       saveStoredTestimonials(updated);
       setTestimonials(updated);
     }
   };
+
+  const pendingReviews = testimonials.filter(t => t.status === 'pending');
+  const approvedReviews = testimonials.filter(t => t.status === 'approved' || (t as any).status === undefined);
 
   if (!isAuthenticated) {
     return (
@@ -258,7 +271,7 @@ export default function AdminPage() {
               Sistine Admin Portal
             </h1>
             <p className="text-xs text-slate-500">
-              Enter PIN to manage project photo galleries and client reviews.
+              Enter PIN to manage project photo galleries and approve client reviews.
             </p>
           </div>
 
@@ -308,7 +321,7 @@ export default function AdminPage() {
             Sistine Decorating Portal
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Upload multiple photos of completed work, before/after shots, and client reviews.
+            Manage your Dartmouth job galleries and moderate incoming client reviews.
           </p>
         </div>
 
@@ -316,7 +329,7 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={() => {
-              if (confirm('Reset to initial Dartmouth projects with multiple photos?')) {
+              if (confirm('Reset to initial Dartmouth projects & reviews?')) {
                 resetToDefaults();
                 loadAllData();
               }
@@ -337,7 +350,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs with Pending Review Notification Count */}
       <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
         <button
           type="button"
@@ -353,13 +366,18 @@ export default function AdminPage() {
         <button
           type="button"
           onClick={() => setActiveTab('testimonials')}
-          className={`px-5 py-2 rounded-full font-serif text-sm font-semibold transition-all ${
+          className={`px-5 py-2 rounded-full font-serif text-sm font-semibold transition-all relative ${
             activeTab === 'testimonials'
               ? 'bg-slate-900 text-white shadow-sm'
               : 'bg-white text-slate-700 border border-slate-200'
           }`}
         >
-          Reviews ({testimonials.length})
+          <span>Reviews ({testimonials.length})</span>
+          {pendingReviews.length > 0 && (
+            <span className="ml-2 bg-amber-500 text-slate-950 font-bold text-xs px-2 py-0.5 rounded-full">
+              {pendingReviews.length} Pending
+            </span>
+          )}
         </button>
       </div>
 
@@ -367,7 +385,6 @@ export default function AdminPage() {
       {activeTab === 'projects' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Uploader Form */}
           <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div>
               <h2 className="text-xl font-serif font-bold text-slate-900">Add New Job &amp; Photos</h2>
@@ -429,7 +446,7 @@ export default function AdminPage() {
                 />
               </div>
 
-              {/* Multiple Image Upload Dropzone */}
+              {/* Multiple Image Upload */}
               <div className="space-y-2">
                 <label className="block text-xs font-semibold uppercase">
                   Job Photos (Upload Multiple) *
@@ -447,7 +464,6 @@ export default function AdminPage() {
                   />
                 </label>
 
-                {/* Uploaded Photos Grid & Management */}
                 {projectImages.length > 0 && (
                   <div className="space-y-2 pt-2">
                     <p className="text-xs font-semibold text-slate-700">
@@ -492,25 +508,6 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* Scope highlights */}
-              <div className="space-y-2 pt-1">
-                <label className="block text-xs font-semibold uppercase">Key Details (Optional)</label>
-                <input
-                  type="text"
-                  value={projectScope1}
-                  onChange={(e) => setProjectScope1(e.target.value)}
-                  placeholder="e.g. Farrow & Ball Estate Emulsion applied"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs"
-                />
-                <input
-                  type="text"
-                  value={projectScope2}
-                  onChange={(e) => setProjectScope2(e.target.value)}
-                  placeholder="e.g. Satinwood finish on all skirting boards"
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs"
-                />
-              </div>
-
               <button
                 type="submit"
                 disabled={isCompressingProject || projectImages.length === 0}
@@ -522,7 +519,6 @@ export default function AdminPage() {
             </form>
           </div>
 
-          {/* Active Projects List */}
           <div className="lg:col-span-6 space-y-3">
             <h2 className="text-xl font-serif font-bold text-slate-900">
               Active Job Galleries ({projects.length})
@@ -530,7 +526,7 @@ export default function AdminPage() {
 
             <div className="space-y-3">
               {projects.map((p) => {
-                const count = p.images?.length || (p.beforeImage ? 2 : 1);
+                const count = p.images?.length || 1;
                 return (
                   <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 flex items-start justify-between gap-4 shadow-xs">
                     <div className="flex items-start gap-3">
@@ -564,79 +560,161 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Testimonials Tab */}
+      {/* Reviews Tab with Moderation Workflow */}
       {activeTab === 'testimonials' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-            <h2 className="text-xl font-serif font-bold text-slate-900">Add Review</h2>
-            {testSuccessMsg && <p className="p-2.5 bg-emerald-50 text-emerald-800 text-xs rounded-lg">{testSuccessMsg}</p>}
-            <form onSubmit={handleCreateTestimonial} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase mb-1">Client Name</label>
-                <input
-                  type="text"
-                  required
-                  value={testClientName}
-                  onChange={(e) => setTestClientName(e.target.value)}
-                  placeholder="e.g. Mark & Sarah"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                />
+        <div className="space-y-8">
+          
+          {testSuccessMsg && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <span>{testSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Section 1: Pending Client Reviews Awaiting Approval */}
+          {pendingReviews.length > 0 && (
+            <div className="bg-amber-50/80 border-2 border-amber-300 rounded-3xl p-6 sm:p-8 space-y-4">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-700" />
+                <h2 className="text-xl font-serif font-bold text-amber-950">
+                  Client Reviews Awaiting Approval ({pendingReviews.length})
+                </h2>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <p className="text-xs text-amber-800">
+                These reviews were submitted by clients on the website and are currently hidden from the public until you click &quot;Approve &amp; Publish&quot;.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {pendingReviews.map((t) => (
+                  <div key={t.id} className="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-amber-500">
+                          {[...Array(t.rating)].map((_, i) => (
+                            <Star key={i} className="w-4 h-4 fill-amber-500 text-amber-500" />
+                          ))}
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                          Pending Approval
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-500 uppercase">{t.projectType}</p>
+                      <p className="text-sm text-slate-700 italic font-serif">&ldquo;{t.reviewText}&rdquo;</p>
+                      <p className="text-xs font-bold text-slate-900">{t.clientName} ({t.location})</p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTestimonial(t.id)}
+                        className="px-3 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50 text-xs font-semibold border border-rose-200"
+                      >
+                        Reject / Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleApproveReview(t.id)}
+                        className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1 shadow-sm"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Approve &amp; Publish</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section 2: Create Review & Live Reviews List */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            {/* Create Testimonial Form */}
+            <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+              <h2 className="text-xl font-serif font-bold text-slate-900">Add Approved Review Directly</h2>
+              <form onSubmit={handleCreateTestimonial} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1">Location</label>
+                  <label className="block text-xs font-semibold uppercase mb-1">Client Name *</label>
                   <input
                     type="text"
                     required
-                    value={testLocation}
-                    onChange={(e) => setTestLocation(e.target.value)}
+                    value={testClientName}
+                    onChange={(e) => setTestClientName(e.target.value)}
+                    placeholder="e.g. Mark & Sarah Jenkins"
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase mb-1">Location</label>
+                    <input
+                      type="text"
+                      required
+                      value={testLocation}
+                      onChange={(e) => setTestLocation(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase mb-1">Work Done</label>
+                    <input
+                      type="text"
+                      required
+                      value={testProjectType}
+                      onChange={(e) => setTestProjectType(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1">Work Done</label>
-                  <input
-                    type="text"
+                  <label className="block text-xs font-semibold uppercase mb-1">Review Text *</label>
+                  <textarea
                     required
-                    value={testProjectType}
-                    onChange={(e) => setTestProjectType(e.target.value)}
+                    rows={3}
+                    value={testReviewText}
+                    onChange={(e) => setTestReviewText(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase mb-1">Review Text</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={testReviewText}
-                  onChange={(e) => setTestReviewText(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all"
-              >
-                Publish Review
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl transition-all"
+                >
+                  Publish Approved Review
+                </button>
+              </form>
+            </div>
+
+            {/* Approved Reviews List */}
+            <div className="lg:col-span-7 space-y-3">
+              <h2 className="text-xl font-serif font-bold text-slate-900">
+                Published Live Reviews ({approvedReviews.length})
+              </h2>
+              {approvedReviews.map((t) => (
+                <div key={t.id} className="bg-white p-4 rounded-xl border border-slate-200 space-y-1.5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {[...Array(t.rating)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteTestimonial(t.id)}
+                      className="text-rose-600 p-1 hover:bg-rose-50 rounded"
+                      title="Delete review"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-700 italic font-serif">&ldquo;{t.reviewText}&rdquo;</p>
+                  <p className="text-[11px] text-slate-500 font-bold">{t.clientName} ({t.location}) • {t.projectType}</p>
+                </div>
+              ))}
+            </div>
+
           </div>
 
-          <div className="lg:col-span-7 space-y-3">
-            <h2 className="text-xl font-serif font-bold text-slate-900">Current Reviews ({testimonials.length})</h2>
-            {testimonials.map((t) => (
-              <div key={t.id} className="bg-white p-4 rounded-xl border border-slate-200 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-serif font-bold text-sm text-slate-900">{t.clientName} ({t.location})</span>
-                  <button type="button" onClick={() => handleDeleteTestimonial(t.id)} className="text-rose-600 p-1">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <p className="text-xs text-slate-600 italic">&ldquo;{t.reviewText}&rdquo;</p>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 

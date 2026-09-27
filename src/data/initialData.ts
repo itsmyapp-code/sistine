@@ -122,9 +122,8 @@ export const INITIAL_TESTIMONIALS: Testimonial[] = [
     projectType: 'Full House Interior Redecoration',
     rating: 5,
     reviewText: 'Sistine Decorating transformed our Dartmouth home. Friendly, clean, and totally reliable. The quality of the finish on our walls and woodwork is fantastic. We will definitely use them again.',
-    source: 'Facebook',
     publishedAt: '2026-08-15',
-    verifiedLink: 'https://facebook.com/Sistine',
+    status: 'approved',
   },
   {
     id: 'test-2',
@@ -133,8 +132,8 @@ export const INITIAL_TESTIMONIALS: Testimonial[] = [
     projectType: 'Exterior Painting & Windows',
     rating: 5,
     reviewText: 'Living right on the water in Kingswear, our exterior paint takes a beating from the weather. Sistine did an exceptional job preparing the masonry and painting the whole frontage. Looks pristine.',
-    source: 'Direct Quote',
     publishedAt: '2026-07-25',
+    status: 'approved',
   },
   {
     id: 'test-3',
@@ -143,8 +142,7 @@ export const INITIAL_TESTIMONIALS: Testimonial[] = [
     projectType: 'Wallpapering & Dining Room',
     rating: 5,
     reviewText: 'Punctual, tidy, and great attention to detail. The wallpapering in our dining room is immaculate. Highly recommended to anyone in the Dartmouth and South Hams area.',
-    source: 'Facebook',
     publishedAt: '2026-08-30',
-    verifiedLink: 'https://facebook.com/Sistine',
+    status: 'approved',
   },
 ];

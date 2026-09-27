@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Star, CheckCircle } from 'lucide-react';
+import { Star, CheckCircle, Clock } from 'lucide-react';
 import { Testimonial } from '@/types';
 import { getStoredTestimonials, saveStoredTestimonials } from '@/lib/storage';
 
@@ -17,7 +17,10 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     const load = () => {
-      setTestimonials(getStoredTestimonials());
+      // Filter strictly approved reviews for public display
+      const all = getStoredTestimonials();
+      const approved = all.filter(t => t.status === 'approved' || (t as any).status === undefined);
+      setTestimonials(approved);
     };
     load();
     window.addEventListener('apex_data_updated', load);
@@ -33,13 +36,13 @@ export default function ReviewsPage() {
       projectType,
       rating,
       reviewText: text,
-      source: 'Direct Quote',
+      status: 'pending', // Requires admin approval before appearing on site!
       publishedAt: new Date().toISOString().split('T')[0],
     };
 
-    const updated = [newEntry, ...testimonials];
+    const all = getStoredTestimonials();
+    const updated = [newEntry, ...all];
     saveStoredTestimonials(updated);
-    setTestimonials(updated);
     setSubmitted(true);
 
     setTimeout(() => {
@@ -49,7 +52,7 @@ export default function ReviewsPage() {
       setLocation('');
       setProjectType('');
       setText('');
-    }, 1200);
+    }, 2000);
   };
 
   return (
@@ -91,7 +94,7 @@ export default function ReviewsPage() {
         </button>
       </div>
 
-      {/* Testimonials Grid (Clean cards without social badges) */}
+      {/* Testimonials Grid (Strictly Approved Reviews) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
         {testimonials.map((test) => (
           <div
@@ -120,64 +123,89 @@ export default function ReviewsPage() {
         ))}
       </div>
 
-      {/* Review Submission Modal */}
+      {/* Review Submission Modal with Pending Approval Notification */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200">
-            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Leave a Client Review</h3>
+            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-1">Leave a Client Review</h3>
+            <p className="text-xs text-slate-500 mb-4">
+              Thank you for sharing your experience. Reviews are reviewed by our team prior to publishing.
+            </p>
+
             {submitted ? (
-              <div className="py-8 text-center space-y-2">
-                <CheckCircle className="w-10 h-10 text-emerald-600 mx-auto" />
-                <p className="font-serif text-lg font-bold text-slate-900">Thank you for your review!</p>
+              <div className="py-8 text-center space-y-3">
+                <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto" />
+                <h4 className="font-serif text-xl font-bold text-slate-900">Thank You!</h4>
+                <p className="text-xs text-slate-600 max-w-xs mx-auto">
+                  Your review has been submitted for approval and will be published once verified by our team.
+                </p>
               </div>
             ) : (
               <form onSubmit={handleAddReview} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Your Name</label>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Your Name *</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. David & Laura"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Town / Area</label>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Town / Area *</label>
                     <input
                       type="text"
                       required
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       placeholder="e.g. Dartmouth"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Work Done</label>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Work Done *</label>
                     <input
                       type="text"
                       required
                       value={projectType}
                       onChange={(e) => setProjectType(e.target.value)}
                       placeholder="e.g. Interior Painting"
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Review</label>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Rating</label>
+                  <select
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
+                  >
+                    <option value={5}>⭐⭐⭐⭐⭐ (5 Stars)</option>
+                    <option value={4}>⭐⭐⭐⭐ (4 Stars)</option>
+                    <option value={3}>⭐⭐⭐ (3 Stars)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Your Review *</label>
                   <textarea
                     required
                     rows={3}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    placeholder="Your thoughts on the work..."
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm"
+                    placeholder="Your thoughts on the work, finish quality, and punctuality..."
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:border-slate-900"
                   />
                 </div>
+
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/70 text-[11px] text-amber-900 flex items-start gap-2">
+                  <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <span>Submitted reviews are held in pending status until approved by our management.</span>
+                </div>
+
                 <div className="flex justify-end gap-2 pt-2">
                   <button
                     type="button"
@@ -188,9 +216,9 @@ export default function ReviewsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 rounded-full bg-slate-900 text-white text-sm font-semibold"
+                    className="px-6 py-2.5 rounded-full bg-slate-900 text-white text-sm font-semibold"
                   >
-                    Submit
+                    Submit for Approval
                   </button>
                 </div>
               </form>

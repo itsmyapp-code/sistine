@@ -28,7 +28,9 @@ export default function HomePage() {
   useEffect(() => {
     const load = () => {
       setProjects(getStoredProjects());
-      setTestimonials(getStoredTestimonials());
+      const all = getStoredTestimonials();
+      const approved = all.filter(t => t.status === 'approved' || (t as any).status === undefined);
+      setTestimonials(approved);
     };
     load();
     window.addEventListener('apex_data_updated', load);
@@ -254,49 +256,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. CLIENT REVIEWS SECTION (Clean without Facebook/source badges) */}
-      <section className="py-16 sm:py-20 bg-[#f5f3ee] border-t border-slate-200/80">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="text-xs font-semibold tracking-widest text-amber-800 uppercase bg-amber-100 px-3 py-1 rounded-full">
-              Local Recommendations
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-serif text-slate-900">
-              What Our Clients Say
-            </h2>
-          </div>
+      {/* 4. CLIENT REVIEWS SECTION (Approved reviews only) */}
+      {testimonials.length > 0 && (
+        <section className="py-16 sm:py-20 bg-[#f5f3ee] border-t border-slate-200/80">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            <div className="text-center max-w-2xl mx-auto space-y-3">
+              <span className="text-xs font-semibold tracking-widest text-amber-800 uppercase bg-amber-100 px-3 py-1 rounded-full">
+                Local Recommendations
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-serif text-slate-900">
+                What Our Clients Say
+              </h2>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            {testimonials.map((test) => (
-              <div
-                key={test.id}
-                className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-1 text-amber-500">
-                    {[...Array(test.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-500 text-amber-500" />
-                    ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {testimonials.slice(0, 3).map((test) => (
+                <div
+                  key={test.id}
+                  className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      {[...Array(test.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-500 text-amber-500" />
+                      ))}
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      {test.projectType}
+                    </p>
+                    <blockquote className="text-sm text-slate-700 leading-relaxed italic font-serif">
+                      &ldquo;{test.reviewText}&rdquo;
+                    </blockquote>
                   </div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    {test.projectType}
-                  </p>
-                  <blockquote className="text-sm text-slate-700 leading-relaxed italic font-serif">
-                    &ldquo;{test.reviewText}&rdquo;
-                  </blockquote>
-                </div>
 
-                <div className="pt-4 border-t border-slate-100">
-                  <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
-                  <p className="text-xs text-slate-500">{test.location}</p>
+                  <div className="pt-4 border-t border-slate-100">
+                    <p className="text-sm font-bold text-slate-900 font-serif">{test.clientName}</p>
+                    <p className="text-xs text-slate-500">{test.location}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
           </div>
-
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 5. CALL TO ACTION SECTION */}
       <section className="relative py-20 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white overflow-hidden">

@@ -28,8 +28,9 @@ export interface Testimonial {
   projectType: string;
   rating: number;
   reviewText: string;
-  source: ReviewSource;
+  source?: ReviewSource;
   publishedAt: string;
+  status: 'approved' | 'pending'; // Approval workflow: public submissions default to 'pending'
   verifiedLink?: string;
   isDraft?: boolean;
 }
