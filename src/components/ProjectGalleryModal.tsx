@@ -16,6 +16,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [panPosition, setPanPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [viewMode, setViewMode] = useState<'gallery' | 'comparison'>('gallery');
+  const [showHint, setShowHint] = useState<boolean>(true);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -27,13 +28,25 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   const lastTapRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
   const pinchStartRef = useRef<{ dist: number; zoom: number } | null>(null);
 
-  // Reset index and zoom when project changes
+  // Dismiss gesture hint on first pointer/touch interaction
+  const dismissHint = useCallback(() => {
+    setShowHint(false);
+  }, []);
+
+  // Reset index and zoom when project changes, and start hint timer
   useEffect(() => {
     if (project) {
       setCurrentIdx(0);
       setZoomLevel(1);
       setPanPosition({ x: 50, y: 50 });
       setViewMode('gallery');
+      setShowHint(true);
+
+      const timer = setTimeout(() => {
+        setShowHint(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
     }
   }, [project]);
 
@@ -54,13 +67,15 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
 
   const handlePrev = useCallback(() => {
     resetZoom();
+    dismissHint();
     setCurrentIdx((prev) => (prev === 0 ? allImages.length - 1 : prev - 1));
-  }, [allImages.length, resetZoom]);
+  }, [allImages.length, resetZoom, dismissHint]);
 
   const handleNext = useCallback(() => {
     resetZoom();
+    dismissHint();
     setCurrentIdx((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
-  }, [allImages.length, resetZoom]);
+  }, [allImages.length, resetZoom, dismissHint]);
 
   // Auto-scroll active thumbnail into view
   useEffect(() => {
@@ -74,10 +89,12 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   }, [currentIdx]);
 
   const handleZoomIn = () => {
+    dismissHint();
     setZoomLevel((prev) => Math.min(prev + 0.75, 3));
   };
 
   const handleZoomOut = () => {
+    dismissHint();
     setZoomLevel((prev) => {
       const next = Math.max(prev - 0.75, 1);
       if (next === 1) setPanPosition({ x: 50, y: 50 });
@@ -87,6 +104,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
 
   // Desktop click to zoom
   const handleClickZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+    dismissHint();
     if (zoomLevel > 1) {
       resetZoom();
     } else {
@@ -103,6 +121,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   // Desktop mouse move pan
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (zoomLevel <= 1 || !imageContainerRef.current) return;
+    dismissHint();
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -111,6 +130,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    dismissHint();
     if (e.touches.length === 2) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
@@ -134,6 +154,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    dismissHint();
     if (e.touches.length === 2 && pinchStartRef.current) {
       // Pinch to zoom
       const t1 = e.touches[0];
@@ -241,8 +262,10 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
       } else if (e.key === 'ArrowRight') {
         if (viewMode === 'gallery') handleNext();
       } else if (e.key === '+' || e.key === '=') {
+        dismissHint();
         setZoomLevel((prev) => Math.min(prev + 0.5, 3));
       } else if (e.key === '-' || e.key === '_') {
+        dismissHint();
         setZoomLevel((prev) => {
           const next = Math.max(prev - 0.5, 1);
           if (next === 1) setPanPosition({ x: 50, y: 50 });
@@ -255,7 +278,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [project, zoomLevel, viewMode, handlePrev, handleNext, onClose, resetZoom]);
+  }, [project, zoomLevel, viewMode, handlePrev, handleNext, onClose, resetZoom, dismissHint]);
 
   if (!project) return null;
 
@@ -344,6 +367,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
               ref={imageContainerRef}
               onClick={handleClickZoom}
               onMouseMove={handleMouseMove}
+              onPointerDown={dismissHint}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -448,8 +472,12 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
                 </>
               )}
 
-              {/* Desktop Hint Badge */}
-              <div className="hidden md:inline-flex absolute bottom-4 left-4 z-20 bg-slate-950/80 backdrop-blur-sm text-slate-300 px-3 py-1 rounded-full text-[11px] font-medium border border-white/10">
+              {/* Auto-fading Gesture & Navigation Hint Badge */}
+              <div 
+                className={`inline-flex absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20 bg-slate-950/80 backdrop-blur-sm text-slate-300 px-3 py-1 rounded-full text-[11px] font-medium border border-white/10 transition-opacity duration-500 pointer-events-none ${
+                  showHint ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
                 {zoomLevel > 1 ? 'Move mouse to pan • Click to reset zoom' : 'Click to zoom in • Double tap or pinch on mobile'}
               </div>
             </div>
@@ -463,21 +491,16 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
                   <span className="text-slate-500 hidden sm:inline">Swipe or tap thumbnails to view</span>
                   <span className="text-slate-500 sm:hidden">Swipe to browse</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  {/* Mobile pagination dots */}
-                  <div className="flex md:hidden items-center gap-1 mr-1">
-                    {allImages.map((_, i) => (
-                      <span
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all duration-200 ${
-                          currentIdx === i ? 'w-4 bg-amber-600' : 'w-1.5 bg-slate-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="font-semibold text-slate-800 bg-white px-2.5 py-0.5 rounded-full border border-slate-200 shadow-xs">
-                    {currentIdx + 1} / {allImages.length}
-                  </span>
+                {/* Mobile / Quick pagination dots */}
+                <div className="flex items-center gap-1">
+                  {allImages.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 rounded-full transition-all duration-200 ${
+                        currentIdx === i ? 'w-4 bg-amber-600' : 'w-1.5 bg-slate-300'
+                      }`}
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -494,6 +517,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
                     type="button"
                     onClick={() => {
                       resetZoom();
+                      dismissHint();
                       setCurrentIdx(idx);
                     }}
                     className={`relative w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden shrink-0 snap-center transition-all duration-150 ${
@@ -513,13 +537,13 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
         )}
 
         {/* Project Description & Details */}
-        <div className="p-5 sm:p-7 bg-white space-y-4 overflow-y-auto">
+        <div className="p-4 sm:p-5 bg-white space-y-3 overflow-y-auto">
           <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-light">
             {project.description}
           </p>
 
           {project.scopeDetails && project.scopeDetails.length > 0 && (
-            <div className="pt-3 border-t border-slate-100">
+            <div className="pt-2.5 sm:pt-3 border-t border-slate-100">
               <h4 className="text-xs font-semibold text-slate-900 uppercase tracking-wider mb-2">
                 Work Carried Out:
               </h4>
