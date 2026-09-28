@@ -1,15 +1,5 @@
 [
   {
-    "id": "test-1790537323352",
-    "clientName": "Fred West",
-    "location": "Dartmouth ",
-    "projectType": "Interior",
-    "rating": 4,
-    "reviewText": "Made a mess so needed someone to repaint the basement",
-    "status": "pending",
-    "publishedAt": "2026-09-27"
-  },
-  {
     "id": "test-1",
     "clientName": "Mark & Sarah Jenkins",
     "location": "Southtown, Dartmouth",
