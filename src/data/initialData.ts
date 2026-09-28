@@ -8,6 +8,7 @@ export const BUSINESS_CONFIG = {
   tagline: 'DECORATE • RESTORE • REFURBISH',
   legalName: 'Sistine Decorating',
   phone: '07803 258507',
+  phoneRaw: '07803258507',
   whatsapp: '447803258507',
   whatsappDisplay: '07803 258507',
   email: 'sistine@live.co.uk',

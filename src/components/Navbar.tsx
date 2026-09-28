@@ -51,7 +51,7 @@ export default function Navbar() {
           {/* Direct Phone / Contact CTA */}
           <div className="hidden sm:flex items-center gap-4">
             <a
-              href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+              href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium transition-all shadow-sm"
             >
               <Phone className="w-4 h-4 text-amber-300" />
@@ -62,7 +62,7 @@ export default function Navbar() {
           {/* Mobile Hamburger Button */}
           <div className="flex items-center gap-3 md:hidden">
             <a
-              href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+              href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
               className="p-2 rounded-full bg-slate-100 text-slate-800"
               aria-label="Call Sistine Decorating"
             >
@@ -98,7 +98,7 @@ export default function Navbar() {
           ))}
           <div className="pt-4 border-t border-slate-100">
             <a
-              href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+              href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
               className="w-full py-3 rounded-xl bg-slate-900 text-white font-medium text-center flex items-center justify-center gap-2"
             >
               <Phone className="w-4 h-4 text-amber-300" />

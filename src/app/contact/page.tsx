@@ -90,7 +90,7 @@ export default function ContactPage() {
                 <div>
                   <p className="text-xs text-slate-500 font-medium uppercase">Phone / Mobile</p>
                   <a
-                    href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+                    href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
                     className="text-lg font-bold text-slate-900 hover:text-amber-700 transition-colors"
                   >
                     {BUSINESS_CONFIG.phone}

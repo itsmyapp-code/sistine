@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { MapPin, CheckCircle2, ArrowRight } from 'lucide-react';
+import { MapPin, CheckCircle2, ArrowRight, Sliders, Image as ImageIcon } from 'lucide-react';
 import { Project } from '@/types';
+import BeforeAfterSlider from './BeforeAfterSlider';
 
 interface ProjectCardProps {
   project: Project;
@@ -11,54 +12,55 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, onOpenSlider }: ProjectCardProps) {
-  const [activeView, setActiveView] = useState<'after' | 'before'>('after');
-  const currentImage = activeView === 'before' && project.beforeImage ? project.beforeImage : project.afterImage;
+  const [showSlider, setShowSlider] = useState(false);
+  const hasComparison = Boolean(project.beforeImage && project.afterImage);
+  const coverImage = project.afterImage || (project.images && project.images[0]) || '';
 
   return (
     <div className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-trade hover:shadow-trade-lg transition-all duration-300 flex flex-col">
-      {/* Image Showcase Container */}
+      {/* Image / Comparison Showcase Container */}
       <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-900">
-        <Image
-          src={currentImage}
-          alt={`${project.title} - ${activeView} state`}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+        {hasComparison && showSlider && project.beforeImage && project.afterImage ? (
+          <div className="w-full h-full">
+            <BeforeAfterSlider
+              beforeImage={project.beforeImage}
+              afterImage={project.afterImage}
+              alt={project.title}
+              aspectRatio="aspect-[16/11]"
+            />
+          </div>
+        ) : (
+          coverImage && (
+            <Image
+              src={coverImage}
+              alt={project.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          )
+        )}
         
         {/* Category Badge */}
-        <div className="absolute top-3 left-3 z-10">
-          <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900/85 text-white backdrop-blur-sm border border-slate-700">
+        <div className="absolute top-3 left-3 z-10 pointer-events-none">
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-900/85 text-white backdrop-blur-sm border border-slate-700 shadow-sm">
             {project.category}
           </span>
         </div>
 
-        {/* Before / After Mini Switcher (if before image is present) */}
-        {project.beforeImage && (
-          <div className="absolute bottom-3 right-3 z-10 bg-slate-950/80 backdrop-blur-md p-1 rounded-lg border border-slate-700/60 flex items-center gap-1 text-[11px] font-semibold text-white">
+        {/* Before / After Slider Toggle Button (Only if both before & after images exist) */}
+        {hasComparison && (
+          <div className="absolute bottom-3 right-3 z-10">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setActiveView('before');
+                setShowSlider(!showSlider);
               }}
-              className={`px-2 py-0.5 rounded transition-colors ${
-                activeView === 'before' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:text-white'
-              }`}
+              className="px-3 py-1 rounded-full bg-slate-950/85 hover:bg-slate-900 backdrop-blur-md text-amber-300 text-xs font-semibold flex items-center gap-1.5 border border-amber-400/40 shadow-md transition-all active:scale-95"
             >
-              Before
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActiveView('after');
-              }}
-              className={`px-2 py-0.5 rounded transition-colors ${
-                activeView === 'after' ? 'bg-white text-slate-900' : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              After
+              <Sliders className="w-3.5 h-3.5" />
+              <span>{showSlider ? 'Show Photo' : 'Compare Before/After'}</span>
             </button>
           </div>
         )}
@@ -92,7 +94,7 @@ export default function ProjectCard({ project, onOpenSlider }: ProjectCardProps)
           )}
         </div>
 
-        {onOpenSlider && project.beforeImage && (
+        {onOpenSlider && hasComparison && (
           <button
             type="button"
             onClick={() => onOpenSlider(project)}

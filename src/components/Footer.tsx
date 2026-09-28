@@ -20,7 +20,7 @@ export default function Footer() {
               <p>
                 Tel:{' '}
                 <a
-                  href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+                  href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
                   className="font-bold text-white hover:text-amber-300 transition-colors"
                 >
                   {BUSINESS_CONFIG.phone}

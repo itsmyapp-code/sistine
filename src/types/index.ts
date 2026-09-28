@@ -16,8 +16,8 @@ export interface Project {
   title: string;
   category: ProjectCategory;
   location: string;
-  afterImage: string; // Primary / cover photo
-  beforeImage?: string; // Optional before photo
+  afterImage?: string | null; // Primary / after photo
+  beforeImage?: string | null; // Optional before photo
   images: string[]; // Multiple photos gallery of the work carried out
   description: string;
   scopeDetails?: string[];

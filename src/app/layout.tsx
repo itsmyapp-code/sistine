@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
+import MobileStickyBar from "@/components/MobileStickyBar";
 import { BUSINESS_CONFIG } from "@/data/initialData";
 
 const inter = Inter({
@@ -72,13 +73,15 @@ export default function RootLayout({
         
         <Navbar />
         
-        <main id="main-content" className="flex-1">
+        <main id="main-content" className="flex-1 pb-16 md:pb-0">
           {children}
         </main>
 
         <Footer />
         <CookieBanner />
+        <MobileStickyBar />
       </body>
     </html>
   );
 }
+

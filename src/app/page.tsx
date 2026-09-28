@@ -14,6 +14,76 @@ import HeroCarousel from '@/components/HeroCarousel';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 
 export default function HomePage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Painter',
+    'name': 'Sistine Decorating',
+    'description': 'Professional residential painting and decorating services in Dartmouth and the South Hams. Interior and exterior painting, specialist wallpapering, and refurbishment.',
+    'image': 'https://sistine.itsmyapp.co.uk/images/hero-1.jpg',
+    '@id': 'https://sistine.itsmyapp.co.uk',
+    'url': 'https://sistine.itsmyapp.co.uk',
+    'telephone': BUSINESS_CONFIG.phone,
+    'priceRange': '££',
+    'address': {
+      '@type': 'PostalAddress',
+      'streetAddress': '15 Southtown',
+      'addressLocality': 'Dartmouth',
+      'addressRegion': 'Devon',
+      'postalCode': BUSINESS_CONFIG.postcode,
+      'addressCountry': 'GB',
+    },
+    'geo': {
+      '@type': 'GeoCoordinates',
+      'latitude': 50.3488,
+      'longitude': -3.5794,
+    },
+    'areaServed': [
+      { '@type': 'City', 'name': 'Dartmouth' },
+      { '@type': 'AdministrativeArea', 'name': 'South Hams' },
+      { '@type': 'AdministrativeArea', 'name': 'Devon' },
+      { '@type': 'Place', 'name': 'Kingswear' },
+      { '@type': 'Place', 'name': 'Totnes' },
+    ],
+    'openingHoursSpecification': [
+      {
+        '@type': 'OpeningHoursSpecification',
+        'dayOfWeek': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        'opens': '08:00',
+        'closes': '17:30',
+      },
+    ],
+    'hasOfferCatalog': {
+      '@type': 'OfferCatalog',
+      'name': 'Painting and Decorating Services',
+      'itemListElement': [
+        {
+          '@type': 'Offer',
+          'itemOffered': {
+            '@type': 'Service',
+            'name': 'Interior Painting & Decorating',
+          },
+        },
+        {
+          '@type': 'Offer',
+          'itemOffered': {
+            '@type': 'Service',
+            'name': 'Exterior Painting & Facades',
+          },
+        },
+        {
+          '@type': 'Offer',
+          'itemOffered': {
+            '@type': 'Service',
+            'name': 'Specialist Wallpapering',
+          },
+        },
+      ],
+    },
+    'sameAs': [
+      BUSINESS_CONFIG.facebook,
+    ],
+  };
+
   const services = [
     {
       title: 'Interior Painting & Decorating',
@@ -43,6 +113,11 @@ export default function HomePage() {
 
   return (
     <div className="space-y-0 pb-0">
+      {/* JSON-LD Local SEO Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       
       {/* 1. HERO CAROUSEL WITH KEN BURNS EFFECT */}
       <HeroCarousel />
@@ -117,7 +192,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <a
-              href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+              href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
               className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-sans font-bold px-8 py-4 rounded-full text-base sm:text-lg shadow-xl hover:scale-105 transition-all inline-flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5 text-slate-950" />
@@ -137,3 +212,4 @@ export default function HomePage() {
     </div>
   );
 }
+

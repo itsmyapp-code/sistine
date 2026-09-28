@@ -104,6 +104,8 @@ function ProjectsContent() {
         ) : (
           filteredProjects.map((project) => {
             const photoCount = project.images && project.images.length > 0 ? project.images.length : (project.beforeImage ? 2 : 1);
+            const coverImg = project.afterImage || project.images?.[0] || '';
+            const hasComparison = Boolean(project.beforeImage && project.afterImage);
 
             return (
               <div
@@ -112,26 +114,33 @@ function ProjectsContent() {
                 className="group cursor-pointer bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
               >
                 <div className="relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
-                  <Image
-                    src={project.afterImage}
-                    alt={project.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 400px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  {coverImg && (
+                    <Image
+                      src={coverImg}
+                      alt={project.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 400px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  )}
                   
                   {/* Category Pill */}
-                  <div className="absolute top-3 left-3">
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-900/80 text-white backdrop-blur-sm">
                       {project.category}
                     </span>
+                    {hasComparison && (
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500 text-slate-950 shadow-sm">
+                        B/A Comparison
+                      </span>
+                    )}
                   </div>
 
                   {/* Zoom in hover badge */}
                   <div className="absolute inset-0 bg-slate-950/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <div className="bg-slate-900/80 backdrop-blur-sm text-white px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg border border-white/20 transform scale-95 group-hover:scale-100 transition-transform">
                       <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Click to view &amp; zoom</span>
+                      <span>Click to view {hasComparison ? '& compare' : '& zoom'}</span>
                     </div>
                   </div>
 

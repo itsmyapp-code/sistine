@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { X, ChevronLeft, ChevronRight, Layers, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, ZoomIn, ZoomOut, RotateCcw, Sliders, Image as ImageIcon } from 'lucide-react';
 import { Project } from '@/types';
+import BeforeAfterSlider from './BeforeAfterSlider';
 
 interface ProjectGalleryModalProps {
   project: Project | null;
@@ -14,8 +15,17 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   const [currentIdx, setCurrentIdx] = useState<number>(0);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [panPosition, setPanPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'gallery' | 'comparison'>('gallery');
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const hasComparison = Boolean(project?.beforeImage && project?.afterImage);
+
+  // Touch gesture refs
+  const touchStartRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
+  const lastPanRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const lastTapRef = useRef<{ time: number; x: number; y: number }>({ time: 0, x: 0, y: 0 });
+  const pinchStartRef = useRef<{ dist: number; zoom: number } | null>(null);
 
   // Reset index and zoom when project changes
   useEffect(() => {
@@ -23,6 +33,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
       setCurrentIdx(0);
       setZoomLevel(1);
       setPanPosition({ x: 50, y: 50 });
+      setViewMode('gallery');
     }
   }, [project]);
 
@@ -35,7 +46,10 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
   const allImages = project
     ? project.images && project.images.length > 0
       ? project.images
-      : [project.afterImage, ...(project.beforeImage ? [project.beforeImage] : [])]
+      : [
+          ...(project.afterImage ? [project.afterImage] : []),
+          ...(project.beforeImage ? [project.beforeImage] : []),
+        ]
     : [];
 
   const handlePrev = useCallback(() => {
@@ -47,6 +61,17 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
     resetZoom();
     setCurrentIdx((prev) => (prev === allImages.length - 1 ? 0 : prev + 1));
   }, [allImages.length, resetZoom]);
+
+  // Auto-scroll active thumbnail into view
+  useEffect(() => {
+    if (thumbnailRefs.current[currentIdx]) {
+      thumbnailRefs.current[currentIdx]?.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest',
+      });
+    }
+  }, [currentIdx]);
 
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.75, 3));
@@ -60,7 +85,8 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
     });
   };
 
-  const toggleZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Desktop click to zoom
+  const handleClickZoom = (e: React.MouseEvent<HTMLDivElement>) => {
     if (zoomLevel > 1) {
       resetZoom();
     } else {
@@ -70,16 +96,134 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
         const y = ((e.clientY - rect.top) / rect.height) * 100;
         setPanPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
       }
-      setZoomLevel(2);
+      setZoomLevel(2.5);
     }
   };
 
+  // Desktop mouse move pan
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (zoomLevel <= 1 || !imageContainerRef.current) return;
     const rect = imageContainerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setPanPosition({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
+  };
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      pinchStartRef.current = {
+        dist,
+        zoom: zoomLevel,
+      };
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchStartRef.current = {
+        x: t.clientX,
+        y: t.clientY,
+        time: Date.now(),
+      };
+      lastPanRef.current = {
+        x: t.clientX,
+        y: t.clientY,
+      };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 2 && pinchStartRef.current) {
+      // Pinch to zoom
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const scale = (dist / pinchStartRef.current.dist) * pinchStartRef.current.zoom;
+      const newZoom = Math.min(Math.max(scale, 1), 3);
+      setZoomLevel(newZoom);
+      if (newZoom <= 1.05) {
+        setPanPosition({ x: 50, y: 50 });
+      }
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      if (zoomLevel > 1.05) {
+        // Locked slide changes when zoomed: Pan across image
+        const deltaX = t.clientX - lastPanRef.current.x;
+        const deltaY = t.clientY - lastPanRef.current.y;
+
+        if (imageContainerRef.current) {
+          const rect = imageContainerRef.current.getBoundingClientRect();
+          const pctX = (deltaX / rect.width) * 100 * (1.2 / zoomLevel);
+          const pctY = (deltaY / rect.height) * 100 * (1.2 / zoomLevel);
+
+          setPanPosition((prev) => ({
+            x: Math.max(0, Math.min(100, prev.x - pctX)),
+            y: Math.max(0, Math.min(100, prev.y - pctY)),
+          }));
+        }
+        lastPanRef.current = { x: t.clientX, y: t.clientY };
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    pinchStartRef.current = null;
+
+    if (e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapRef.current.time;
+      const distFromLastTap = Math.hypot(
+        touch.clientX - lastTapRef.current.x,
+        touch.clientY - lastTapRef.current.y
+      );
+
+      // Double tap detection (< 300ms, close proximity)
+      if (timeSinceLastTap < 300 && distFromLastTap < 40) {
+        if (zoomLevel > 1.05) {
+          resetZoom();
+        } else {
+          if (imageContainerRef.current) {
+            const rect = imageContainerRef.current.getBoundingClientRect();
+            const x = ((touch.clientX - rect.left) / rect.width) * 100;
+            const y = ((touch.clientY - rect.top) / rect.height) * 100;
+            setPanPosition({
+              x: Math.max(0, Math.min(100, x)),
+              y: Math.max(0, Math.min(100, y)),
+            });
+          }
+          setZoomLevel(2.5);
+        }
+        lastTapRef.current = { time: 0, x: 0, y: 0 };
+        return;
+      }
+
+      lastTapRef.current = {
+        time: now,
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+
+      // Unzoomed: Horizontal swipe to switch slides
+      if (zoomLevel <= 1.05) {
+        const deltaX = touch.clientX - touchStartRef.current.x;
+        const deltaY = touch.clientY - touchStartRef.current.y;
+        const deltaTime = now - touchStartRef.current.time;
+
+        if (
+          Math.abs(deltaX) > 40 &&
+          Math.abs(deltaX) > Math.abs(deltaY) * 1.2 &&
+          deltaTime < 600
+        ) {
+          if (deltaX < 0) {
+            handleNext();
+          } else {
+            handlePrev();
+          }
+        }
+      }
+    }
   };
 
   // Keyboard navigation & controls
@@ -93,9 +237,9 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
           onClose();
         }
       } else if (e.key === 'ArrowLeft') {
-        handlePrev();
+        if (viewMode === 'gallery') handlePrev();
       } else if (e.key === 'ArrowRight') {
-        handleNext();
+        if (viewMode === 'gallery') handleNext();
       } else if (e.key === '+' || e.key === '=') {
         setZoomLevel((prev) => Math.min(prev + 0.5, 3));
       } else if (e.key === '-' || e.key === '_') {
@@ -111,7 +255,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [project, zoomLevel, handlePrev, handleNext, onClose, resetZoom]);
+  }, [project, zoomLevel, viewMode, handlePrev, handleNext, onClose, resetZoom]);
 
   if (!project) return null;
 
@@ -124,165 +268,252 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
       >
         {/* Header */}
         <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
-          <div>
-            <span className="text-xs font-semibold text-amber-300 uppercase tracking-widest">
-              {project.category} • {project.location}
-            </span>
-            <h3 className="text-lg sm:text-2xl font-serif font-bold text-white mt-0.5">
+          <div className="min-w-0 pr-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-amber-300 uppercase tracking-widest">
+                {project.category} • {project.location}
+              </span>
+              {viewMode === 'gallery' && allImages.length > 1 && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-slate-800 text-amber-300/90 px-2.5 py-0.5 rounded-full border border-slate-700">
+                  <Layers className="w-3 h-3 text-amber-400" />
+                  Photo {currentIdx + 1} of {allImages.length}
+                </span>
+              )}
+            </div>
+            <h3 className="text-lg sm:text-2xl font-serif font-bold text-white mt-0.5 truncate">
               {project.title}
             </h3>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* View Mode Switcher (if both before & after images exist) */}
+            {hasComparison && (
+              <div className="flex items-center bg-slate-800 p-1 rounded-full border border-slate-700 text-xs font-medium mr-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('gallery')}
+                  className={`px-3 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                    viewMode === 'gallery'
+                      ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Gallery</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('comparison')}
+                  className={`px-3 py-1 rounded-full transition-all flex items-center gap-1.5 ${
+                    viewMode === 'comparison'
+                      ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>Before/After</span>
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-full bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Main Image Slider Viewport with Zoom capability */}
-        <div 
-          ref={imageContainerRef}
-          onClick={toggleZoom}
-          onMouseMove={handleMouseMove}
-          className={`relative aspect-[16/10] sm:aspect-[16/9] w-full bg-slate-950 overflow-hidden select-none ${
-            zoomLevel > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'
-          }`}
-          title={zoomLevel > 1 ? 'Click to zoom out' : 'Click to zoom in'}
-        >
-          <div
-            className="w-full h-full relative transition-transform duration-200 ease-out"
-            style={{
-              transform: `scale(${zoomLevel})`,
-              transformOrigin: `${panPosition.x}% ${panPosition.y}%`,
-            }}
-          >
-            <Image
-              src={allImages[currentIdx]}
-              alt={`${project.title} photo ${currentIdx + 1}`}
-              fill
-              sizes="(max-width: 1200px) 100vw, 1200px"
-              className="object-contain"
-              priority
-              draggable={false}
+        {/* View Content: Comparison Slider OR Gallery Viewer */}
+        {viewMode === 'comparison' && hasComparison && project.beforeImage && project.afterImage ? (
+          <div className="p-3 sm:p-5 bg-slate-950 flex items-center justify-center">
+            <BeforeAfterSlider
+              beforeImage={project.beforeImage}
+              afterImage={project.afterImage}
+              alt={project.title}
+              aspectRatio="max-h-[50vh] md:max-h-[60vh] h-[45vh] sm:h-[50vh] md:h-[58vh] w-full"
             />
           </div>
-
-          {/* Floating Zoom Controls Bar */}
-          <div 
-            className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-white shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={handleZoomOut}
-              disabled={zoomLevel <= 1}
-              className={`p-1.5 rounded-full transition-colors ${
-                zoomLevel <= 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20 text-white'
+        ) : (
+          <>
+            {/* Main Image Slider Viewport with Touch Gestures & Zoom capability */}
+            <div 
+              ref={imageContainerRef}
+              onClick={handleClickZoom}
+              onMouseMove={handleMouseMove}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className={`relative max-h-[50vh] md:max-h-[60vh] h-[45vh] sm:h-[50vh] md:h-[58vh] w-full flex items-center justify-center bg-black/40 md:bg-slate-950 overflow-hidden select-none touch-none ${
+                zoomLevel > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'
               }`}
-              aria-label="Zoom out"
-              title="Zoom out (-)"
+              title={zoomLevel > 1 ? 'Click to zoom out' : 'Click or double tap to zoom in'}
             >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-
-            <span className="text-xs font-semibold px-1 min-w-[3rem] text-center font-mono text-amber-300">
-              {Math.round(zoomLevel * 100)}%
-            </span>
-
-            <button
-              type="button"
-              onClick={handleZoomIn}
-              disabled={zoomLevel >= 3}
-              className={`p-1.5 rounded-full transition-colors ${
-                zoomLevel >= 3 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20 text-white'
-              }`}
-              aria-label="Zoom in"
-              title="Zoom in (+)"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-
-            {zoomLevel > 1 && (
-              <button
-                type="button"
-                onClick={resetZoom}
-                className="p-1.5 rounded-full hover:bg-white/20 text-amber-300 transition-colors ml-0.5 border-l border-white/20 pl-2"
-                aria-label="Reset zoom"
-                title="Reset zoom (0)"
+              <div
+                className="w-full h-full relative transition-transform duration-150 ease-out flex items-center justify-center"
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: `${panPosition.x}% ${panPosition.y}%`,
+                }}
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
+                {allImages.length > 0 && (
+                  <Image
+                    src={allImages[currentIdx]}
+                    alt={`${project.title} photo ${currentIdx + 1}`}
+                    fill
+                    sizes="(max-width: 1200px) 100vw, 1200px"
+                    className="object-contain"
+                    priority
+                    draggable={false}
+                  />
+                )}
+              </div>
+
+              {/* Floating Zoom Controls Bar - Hidden on mobile/touch, visible on md+ */}
+              <div 
+                className="hidden md:flex absolute top-4 right-4 z-20 items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/20 text-white shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={handleZoomOut}
+                  disabled={zoomLevel <= 1}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    zoomLevel <= 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20 text-white'
+                  }`}
+                  aria-label="Zoom out"
+                  title="Zoom out (-)"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </button>
+
+                <span className="text-xs font-semibold px-1 min-w-[3rem] text-center font-mono text-amber-300">
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  disabled={zoomLevel >= 3}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    zoomLevel >= 3 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20 text-white'
+                  }`}
+                  aria-label="Zoom in"
+                  title="Zoom in (+)"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+
+                {zoomLevel > 1 && (
+                  <button
+                    type="button"
+                    onClick={resetZoom}
+                    className="p-1.5 rounded-full hover:bg-white/20 text-amber-300 transition-colors ml-0.5 border-l border-white/20 pl-2"
+                    aria-label="Reset zoom"
+                    title="Reset zoom (0)"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Desktop Previous / Next Arrows (Hidden on mobile to avoid touch gesture conflicts) */}
+              {allImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrev();
+                    }}
+                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white items-center justify-center transition-all shadow-lg z-20"
+                    aria-label="Previous photo"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNext();
+                    }}
+                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white items-center justify-center transition-all shadow-lg z-20"
+                    aria-label="Next photo"
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
+
+              {/* Desktop Hint Badge */}
+              <div className="hidden md:inline-flex absolute bottom-4 left-4 z-20 bg-slate-950/80 backdrop-blur-sm text-slate-300 px-3 py-1 rounded-full text-[11px] font-medium border border-white/10">
+                {zoomLevel > 1 ? 'Move mouse to pan • Click to reset zoom' : 'Click to zoom in • Double tap or pinch on mobile'}
+              </div>
+            </div>
+
+            {/* Gallery Info Bar & Mobile Dots Indicator */}
+            {allImages.length > 1 && (
+              <div className="px-4 py-2 bg-slate-100/95 border-b border-slate-200/80 flex items-center justify-between text-xs text-slate-600 font-medium shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-slate-800">Gallery</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-500 hidden sm:inline">Swipe or tap thumbnails to view</span>
+                  <span className="text-slate-500 sm:hidden">Swipe to browse</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* Mobile pagination dots */}
+                  <div className="flex md:hidden items-center gap-1 mr-1">
+                    {allImages.map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all duration-200 ${
+                          currentIdx === i ? 'w-4 bg-amber-600' : 'w-1.5 bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-semibold text-slate-800 bg-white px-2.5 py-0.5 rounded-full border border-slate-200 shadow-xs">
+                    {currentIdx + 1} / {allImages.length}
+                  </span>
+                </div>
+              </div>
             )}
-          </div>
 
-          {/* Previous / Next Arrows */}
-          {allImages.length > 1 && (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrev();
-                }}
-                className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all shadow-lg z-20"
-                aria-label="Previous photo"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleNext();
-                }}
-                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all shadow-lg z-20"
-                aria-label="Next photo"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </>
-          )}
-
-          {/* Bottom Left Info / Hint Badge */}
-          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
-            <div className="bg-slate-950/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 border border-white/10">
-              <Layers className="w-3.5 h-3.5 text-amber-400" />
-              <span>Photo {currentIdx + 1} of {allImages.length}</span>
-            </div>
-
-            <div className="hidden sm:inline-flex bg-slate-950/80 backdrop-blur-sm text-slate-300 px-3 py-1 rounded-full text-[11px] font-medium border border-white/10">
-              {zoomLevel > 1 ? 'Move mouse to pan • Click to zoom out' : 'Click image to zoom in'}
-            </div>
-          </div>
-        </div>
-
-        {/* Thumbnails Row */}
-        {allImages.length > 1 && (
-          <div className="p-3 sm:p-4 bg-slate-100 border-b border-slate-200 flex items-center gap-2.5 overflow-x-auto shrink-0">
-            {allImages.map((img, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => {
-                  resetZoom();
-                  setCurrentIdx(idx);
-                }}
-                className={`relative w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
-                  currentIdx === idx ? 'border-amber-500 scale-105 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
+            {/* Scrollable Thumbnails Strip with Snap & Crisp Active Highlight */}
+            {allImages.length > 1 && (
+              <div className="p-3 sm:p-4 bg-slate-50 border-b border-slate-200 flex items-center gap-2.5 sm:gap-3 overflow-x-auto snap-x scrollbar-none shrink-0">
+                {allImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    ref={(el) => {
+                      thumbnailRefs.current[idx] = el;
+                    }}
+                    type="button"
+                    onClick={() => {
+                      resetZoom();
+                      setCurrentIdx(idx);
+                    }}
+                    className={`relative w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden shrink-0 snap-center transition-all duration-150 ${
+                      currentIdx === idx
+                        ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-slate-50 scale-105 shadow-md border-amber-500'
+                        : 'opacity-60 hover:opacity-100 border border-slate-200'
+                    }`}
+                    aria-label={`View photo ${idx + 1}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Project Description & Details */}
-        <div className="p-6 sm:p-8 bg-white space-y-4 overflow-y-auto">
+        <div className="p-5 sm:p-7 bg-white space-y-4 overflow-y-auto">
           <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-light">
             {project.description}
           </p>
@@ -308,4 +539,3 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
     </div>
   );
 }
-

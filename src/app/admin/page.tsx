@@ -100,7 +100,11 @@ export default function AdminPage() {
   const [projectLocation, setProjectLocation] = useState('Dartmouth');
   const [projectDescription, setProjectDescription] = useState('');
   const [projectImages, setProjectImages] = useState<string[]>([]);
+  const [projectBeforeImage, setProjectBeforeImage] = useState<string | null>(null);
+  const [projectAfterImage, setProjectAfterImage] = useState<string | null>(null);
   const [isCompressingProject, setIsCompressingProject] = useState(false);
+  const [isCompressingBefore, setIsCompressingBefore] = useState(false);
+  const [isCompressingAfter, setIsCompressingAfter] = useState(false);
   const [projectSuccessMsg, setProjectSuccessMsg] = useState('');
 
   // Hero form state
@@ -250,13 +254,45 @@ export default function AdminPage() {
     });
   };
 
+  const handleBeforeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressingBefore(true);
+    try {
+      const compressed = await compressImage(file);
+      setProjectBeforeImage(compressed);
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading before photo.');
+    } finally {
+      setIsCompressingBefore(false);
+    }
+  };
+
+  const handleAfterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsCompressingAfter(true);
+    try {
+      const compressed = await compressImage(file);
+      setProjectAfterImage(compressed);
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading after photo.');
+    } finally {
+      setIsCompressingAfter(false);
+    }
+  };
+
   const startEditProject = (project: Project) => {
     setEditingProjectId(project.id);
     setProjectTitle(project.title);
     setProjectCategory(project.category);
     setProjectLocation(project.location);
     setProjectDescription(project.description);
-    setProjectImages(project.images && project.images.length > 0 ? project.images : [project.afterImage]);
+    setProjectImages(project.images && project.images.length > 0 ? project.images : (project.afterImage ? [project.afterImage] : []));
+    setProjectBeforeImage(project.beforeImage || null);
+    setProjectAfterImage(project.afterImage || null);
     
     if (projectFormRef.current) {
       projectFormRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -270,14 +306,19 @@ export default function AdminPage() {
     setProjectLocation('Dartmouth');
     setProjectDescription('');
     setProjectImages([]);
+    setProjectBeforeImage(null);
+    setProjectAfterImage(null);
   };
 
   const handleSaveProject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (projectImages.length === 0) {
+    if (projectImages.length === 0 && !projectAfterImage) {
       alert('Please upload at least one photo of the work carried out.');
       return;
     }
+
+    const mainAfter = projectAfterImage || (projectImages.length > 0 ? projectImages[0] : null);
+    const mainBefore = projectBeforeImage || null;
 
     if (editingProjectId) {
       // Update existing project
@@ -289,8 +330,9 @@ export default function AdminPage() {
             category: projectCategory,
             location: projectLocation,
             description: projectDescription,
-            afterImage: projectImages[0],
-            images: projectImages,
+            afterImage: mainAfter,
+            beforeImage: mainBefore,
+            images: projectImages.length > 0 ? projectImages : (mainAfter ? [mainAfter] : []),
           };
         }
         return p;
@@ -308,8 +350,9 @@ export default function AdminPage() {
         title: projectTitle,
         category: projectCategory,
         location: projectLocation,
-        afterImage: projectImages[0],
-        images: projectImages,
+        afterImage: mainAfter,
+        beforeImage: mainBefore,
+        images: projectImages.length > 0 ? projectImages : (mainAfter ? [mainAfter] : []),
         description: projectDescription,
         publishedAt: new Date().toISOString().split('T')[0],
       };
@@ -317,7 +360,7 @@ export default function AdminPage() {
       const updated = [newProj, ...projects];
       saveStoredProjects(updated);
       setProjects(updated);
-      setProjectSuccessMsg(`Project with ${projectImages.length} photos published!`);
+      setProjectSuccessMsg(`Project with ${newProj.images.length} photos published!`);
       cancelEditProject();
     }
 
@@ -968,6 +1011,163 @@ export default function AdminPage() {
                 )}
               </div>
 
+              {/* Before & After Comparison Section (Optional) */}
+              <div className="pt-4 border-t border-slate-200/80 space-y-3">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase text-slate-800 flex items-center gap-1.5">
+                    <Sliders className="w-4 h-4 text-amber-600" />
+                    <span>Before &amp; After Comparison (Optional)</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Provide both a Before and After photo to enable the interactive split-screen comparison slider on this project.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Before Image Slot */}
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800">1. Before Photo</span>
+                      {projectBeforeImage && (
+                        <button
+                          type="button"
+                          onClick={() => setProjectBeforeImage(null)}
+                          className="text-[11px] font-semibold text-rose-600 hover:underline"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {projectBeforeImage ? (
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-300 bg-slate-900 group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={projectBeforeImage} alt="Before Preview" className="w-full h-full object-cover" />
+                        <div className="absolute top-1.5 left-1.5 bg-black/80 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded">
+                          Before
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setProjectBeforeImage(null)}
+                          className="absolute top-1.5 right-1.5 p-1 rounded bg-rose-600 hover:bg-rose-500 text-white"
+                          title="Remove Before photo"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-slate-800 rounded-xl bg-white hover:bg-slate-50 cursor-pointer transition-colors text-center">
+                        <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                        <span className="text-[11px] font-semibold text-slate-700">
+                          {isCompressingBefore ? 'Processing...' : 'Upload Before Image'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleBeforeUpload}
+                          className="hidden"
+                          disabled={isCompressingBefore}
+                        />
+                      </label>
+                    )}
+
+                    {/* Quick Pick from project gallery if available */}
+                    {projectImages.length > 0 && (
+                      <div className="pt-1">
+                        <p className="text-[10px] text-slate-500 font-medium mb-1">Or pick from uploaded photos:</p>
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                          {projectImages.map((img, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setProjectBeforeImage(img)}
+                              className={`relative w-10 h-8 rounded-md overflow-hidden shrink-0 border ${
+                                projectBeforeImage === img ? 'ring-2 ring-amber-500 border-transparent' : 'border-slate-300 opacity-70 hover:opacity-100'
+                              }`}
+                              title={`Select photo ${i + 1} as Before`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={img} alt={`Pic ${i + 1}`} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* After Image Slot */}
+                  <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-800">2. After Photo</span>
+                      {projectAfterImage && (
+                        <button
+                          type="button"
+                          onClick={() => setProjectAfterImage(null)}
+                          className="text-[11px] font-semibold text-rose-600 hover:underline"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {projectAfterImage ? (
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-300 bg-slate-900 group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={projectAfterImage} alt="After Preview" className="w-full h-full object-cover" />
+                        <div className="absolute top-1.5 left-1.5 bg-slate-950/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                          After
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setProjectAfterImage(null)}
+                          className="absolute top-1.5 right-1.5 p-1 rounded bg-rose-600 hover:bg-rose-500 text-white"
+                          title="Remove After photo"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-300 hover:border-slate-800 rounded-xl bg-white hover:bg-slate-50 cursor-pointer transition-colors text-center">
+                        <Upload className="w-5 h-5 text-slate-400 mb-1" />
+                        <span className="text-[11px] font-semibold text-slate-700">
+                          {isCompressingAfter ? 'Processing...' : 'Upload After Image'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAfterUpload}
+                          className="hidden"
+                          disabled={isCompressingAfter}
+                        />
+                      </label>
+                    )}
+
+                    {/* Quick Pick from project gallery if available */}
+                    {projectImages.length > 0 && (
+                      <div className="pt-1">
+                        <p className="text-[10px] text-slate-500 font-medium mb-1">Or pick from uploaded photos:</p>
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                          {projectImages.map((img, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setProjectAfterImage(img)}
+                              className={`relative w-10 h-8 rounded-md overflow-hidden shrink-0 border ${
+                                projectAfterImage === img ? 'ring-2 ring-amber-500 border-transparent' : 'border-slate-300 opacity-70 hover:opacity-100'
+                              }`}
+                              title={`Select photo ${i + 1} as After`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={img} alt={`Pic ${i + 1}`} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="pt-2 flex gap-3">
                 <button
                   type="submit"
@@ -1025,13 +1225,20 @@ export default function AdminPage() {
                     <div className="flex items-start gap-3.5">
                       <div className="relative w-20 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p.afterImage} alt={p.title} className="w-full h-full object-cover" />
+                        <img src={p.afterImage || p.images?.[0]} alt={p.title} className="w-full h-full object-cover" />
                         <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                           {count}📷
                         </span>
                       </div>
                       <div>
-                        <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-1">{p.title}</h3>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-1">{p.title}</h3>
+                          {p.beforeImage && p.afterImage && (
+                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded border border-amber-300">
+                              B/A Slider
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500 mt-0.5">{p.category} • {p.location}</p>
                         <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{p.description}</p>
                       </div>

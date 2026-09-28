@@ -141,7 +141,7 @@ export default function QuoteModal({ isOpen, onClose, preselectedService }: Quot
 
             <div className="pt-2 flex items-center justify-between">
               <a
-                href={`tel:${BUSINESS_CONFIG.phone.replace(/\s+/g, '')}`}
+                href={`tel:${BUSINESS_CONFIG.phoneRaw || '07803258507'}`}
                 className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1 font-medium"
               >
                 <Phone className="w-3.5 h-3.5" />
