@@ -90,14 +90,14 @@ export default function BeforeAfterSlider({
           draggable={false}
         />
         {/* Floating After Badge */}
-        <div className="absolute top-3.5 right-3.5 z-10 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-white text-xs font-semibold tracking-wider uppercase border border-white/20 shadow-md">
+        <div className="absolute top-3.5 right-3.5 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-white text-xs font-semibold tracking-wider uppercase border border-white/20 shadow-md">
           {afterLabel}
         </div>
       </div>
 
       {/* 2. Clipped Overlay: BEFORE Image */}
       <div
-        className="absolute inset-0 w-full h-full overflow-hidden"
+        className="absolute inset-0 w-full h-full overflow-hidden z-10"
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
         }}
@@ -110,7 +110,7 @@ export default function BeforeAfterSlider({
           draggable={false}
         />
         {/* Floating Before Badge */}
-        <div className="absolute top-3.5 left-3.5 z-10 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-amber-300 text-xs font-semibold tracking-wider uppercase border border-amber-400/30 shadow-md">
+        <div className="absolute top-3.5 left-3.5 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-amber-300 text-xs font-semibold tracking-wider uppercase border border-amber-400/30 shadow-md">
           {beforeLabel}
         </div>
       </div>
