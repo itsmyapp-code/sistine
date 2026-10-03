@@ -21,6 +21,7 @@ export interface Project {
   images: string[]; // Multiple photos gallery of the work carried out
   description: string;
   scopeDetails?: string[];
+  manufacturers?: string[]; // UK Paint & decorating product manufacturers used (e.g., Dulux Trade, Farrow & Ball)
   featured?: boolean;
   publishedAt: string;
   isDraft?: boolean;

@@ -31,10 +31,12 @@ import {
   ChevronRight,
   Info,
   Settings,
-  Eye
+  Eye,
+  Paintbrush
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { Project, Testimonial, ProjectCategory, HeroSlide } from '@/types';
+import { UK_PAINT_MANUFACTURERS } from '@/data/initialData';
 import { 
   getStoredProjects, 
   saveStoredProjects, 
@@ -99,6 +101,8 @@ export default function AdminPage() {
   const [projectCategory, setProjectCategory] = useState<ProjectCategory>('Interior');
   const [projectLocation, setProjectLocation] = useState('Dartmouth');
   const [projectDescription, setProjectDescription] = useState('');
+  const [projectManufacturers, setProjectManufacturers] = useState<string[]>([]);
+  const [customSupplierInput, setCustomSupplierInput] = useState('');
   const [projectImages, setProjectImages] = useState<string[]>([]);
   const [projectBeforeImage, setProjectBeforeImage] = useState<string | null>(null);
   const [projectAfterImage, setProjectAfterImage] = useState<string | null>(null);
@@ -284,12 +288,28 @@ export default function AdminPage() {
     }
   };
 
+  const toggleManufacturer = (brand: string) => {
+    setProjectManufacturers(prev => 
+      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+    );
+  };
+
+  const handleAddCustomSupplier = () => {
+    const trimmed = customSupplierInput.trim();
+    if (trimmed && !projectManufacturers.includes(trimmed)) {
+      setProjectManufacturers(prev => [...prev, trimmed]);
+      setCustomSupplierInput('');
+    }
+  };
+
   const startEditProject = (project: Project) => {
     setEditingProjectId(project.id);
     setProjectTitle(project.title);
     setProjectCategory(project.category);
     setProjectLocation(project.location);
     setProjectDescription(project.description);
+    setProjectManufacturers(project.manufacturers || []);
+    setCustomSupplierInput('');
     setProjectImages(project.images && project.images.length > 0 ? project.images : (project.afterImage ? [project.afterImage] : []));
     setProjectBeforeImage(project.beforeImage || null);
     setProjectAfterImage(project.afterImage || null);
@@ -305,6 +325,8 @@ export default function AdminPage() {
     setProjectCategory('Interior');
     setProjectLocation('Dartmouth');
     setProjectDescription('');
+    setProjectManufacturers([]);
+    setCustomSupplierInput('');
     setProjectImages([]);
     setProjectBeforeImage(null);
     setProjectAfterImage(null);
@@ -330,6 +352,7 @@ export default function AdminPage() {
             category: projectCategory,
             location: projectLocation,
             description: projectDescription,
+            manufacturers: projectManufacturers.length > 0 ? projectManufacturers : undefined,
             afterImage: mainAfter,
             beforeImage: mainBefore,
             images: projectImages.length > 0 ? projectImages : (mainAfter ? [mainAfter] : []),
@@ -354,6 +377,7 @@ export default function AdminPage() {
         beforeImage: mainBefore,
         images: projectImages.length > 0 ? projectImages : (mainAfter ? [mainAfter] : []),
         description: projectDescription,
+        manufacturers: projectManufacturers.length > 0 ? projectManufacturers : undefined,
         publishedAt: new Date().toISOString().split('T')[0],
       };
 
@@ -946,6 +970,105 @@ export default function AdminPage() {
                 />
               </div>
 
+              {/* Paint Manufacturers & Decorating Suppliers */}
+              <div className="pt-3 border-t border-slate-200/80 space-y-2.5">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-slate-800 flex items-center gap-1.5">
+                    <Paintbrush className="w-4 h-4 text-amber-700" />
+                    <span>Paint Manufacturers &amp; Decorating Suppliers (Tick all used)</span>
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Tick any quality paint brands and suppliers used on this job (e.g. Dulux Trade, Farrow &amp; Ball). Only selected brands will appear on the card under &quot;This project used the following decorating suppliers&quot;.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1 bg-slate-50/70 rounded-2xl border border-slate-200">
+                  {UK_PAINT_MANUFACTURERS.map((brand) => {
+                    const isSelected = projectManufacturers.includes(brand);
+                    return (
+                      <button
+                        type="button"
+                        key={brand}
+                        onClick={() => toggleManufacturer(brand)}
+                        className={`flex items-center gap-2 p-2 rounded-xl text-left border text-xs transition-all ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-500 text-slate-950 font-bold shadow-xs'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100/80'
+                        }`}
+                      >
+                        <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 text-[10px] ${
+                          isSelected ? 'bg-amber-600 border-amber-600 text-white font-bold' : 'border-slate-300 bg-white'
+                        }`}>
+                          {isSelected ? '✓' : ''}
+                        </span>
+                        <span className="truncate">{brand}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Custom supplier adder if specialist brand used */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="text"
+                    value={customSupplierInput}
+                    onChange={(e) => setCustomSupplierInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomSupplier();
+                      }
+                    }}
+                    placeholder="Add other supplier or paint brand..."
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:border-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomSupplier}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    + Add
+                  </button>
+                </div>
+
+                {/* Selected suppliers active pills preview */}
+                {projectManufacturers.length > 0 && (
+                  <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-amber-950 uppercase tracking-wider">
+                        Suppliers Ticked for this Project ({projectManufacturers.length}):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setProjectManufacturers([])}
+                        className="text-[10px] font-semibold text-rose-600 hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {projectManufacturers.map((m) => (
+                        <span
+                          key={m}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-slate-900 border border-amber-300 shadow-xs"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                          <span>{m}</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleManufacturer(m)}
+                            className="text-slate-400 hover:text-rose-600 ml-0.5 text-sm leading-none"
+                            title="Remove"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Photo Upload & Gallery Manager */}
               <div className="space-y-2">
                 <label className="block text-xs font-semibold uppercase text-slate-700">
@@ -1240,6 +1363,15 @@ export default function AdminPage() {
                           )}
                         </div>
                         <p className="text-xs text-slate-500 mt-0.5">{p.category} • {p.location}</p>
+                        {p.manufacturers && p.manufacturers.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {p.manufacturers.map((m, idx) => (
+                              <span key={idx} className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-semibold rounded border border-amber-200">
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{p.description}</p>
                       </div>
                     </div>

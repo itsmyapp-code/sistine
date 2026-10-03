@@ -92,6 +92,25 @@ export default function ProjectCard({ project, onOpenSlider }: ProjectCardProps)
               ))}
             </ul>
           )}
+
+          {project.manufacturers && project.manufacturers.length > 0 && (
+            <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
+              <span className="text-[11px] font-semibold text-slate-700 uppercase tracking-wider block">
+                Decorating Suppliers &amp; Paints:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {project.manufacturers.map((m, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200/80"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {onOpenSlider && hasComparison && (

@@ -83,15 +83,18 @@ export default function HeroCarousel() {
       <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6 sm:space-y-8 animate-in fade-in duration-700">
 
         {/* Headline */}
-        <div className="space-y-2">
+        <div className="space-y-2 sm:space-y-3">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-normal tracking-tight text-white drop-shadow-md">
             <span className="block text-slate-200 text-xl sm:text-3xl mb-2 font-sans font-light tracking-wide uppercase">
               Welcome to
             </span>
             <span className="block font-semibold text-amber-200">
-              Sistine Decorating
+              Sistine Professional Decorators
             </span>
           </h1>
+          <p className="text-lg sm:text-2xl md:text-3xl font-serif font-medium tracking-wide text-amber-300 drop-shadow-md">
+            Decorate • Restore • Refurbish
+          </p>
           <p className="text-base sm:text-xl md:text-2xl text-slate-200 font-light max-w-2xl mx-auto drop-shadow">
             Quality Painting &amp; Decorating in Dartmouth &amp; South Devon
           </p>

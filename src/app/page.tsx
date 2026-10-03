@@ -17,7 +17,7 @@ export default function HomePage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Painter',
-    'name': 'Sistine Decorating',
+    'name': 'Sistine Professional Decorators',
     'description': 'Professional residential painting and decorating services in Dartmouth and the South Hams. Interior and exterior painting, specialist wallpapering, and refurbishment.',
     'image': 'https://sistine.itsmyapp.co.uk/images/hero-1.jpg',
     '@id': 'https://sistine.itsmyapp.co.uk',
@@ -135,7 +135,7 @@ export default function HomePage() {
             </h2>
             <div className="text-base sm:text-lg text-slate-600 space-y-4 leading-relaxed font-normal">
               <p>
-                Based at <strong>15 Southtown in Dartmouth</strong>, Sistine Decorating provides professional interior and exterior painting services for homeowners, holiday cottages, and residential properties across Dartmouth and the wider South Hams.
+                Based in Dartmouth, Sistine Decorators provides professional interior and exterior painting services for homeowners, holiday cottages, and residential properties across Dartmouth and the wider South Hams.
               </p>
               <p>
                 We believe that good decorating is built on thorough preparation, attention to detail, and a tidy, respectful way of working in your home. Whether refreshing a single room, wallpapering a feature wall, or repainting an entire coastal facade, we deliver clean, lasting results.
@@ -188,7 +188,7 @@ export default function HomePage() {
             Planning Your Next Decorating Project?
           </h2>
           <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
-            Contact Sistine Decorating today for friendly advice and a straightforward, no-obligation quotation for your home.
+            Contact Sistine Professional Decorators today for friendly advice and a straightforward, no-obligation quotation for your home.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <a

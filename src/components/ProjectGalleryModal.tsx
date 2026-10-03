@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { X, ChevronLeft, ChevronRight, Layers, ZoomIn, ZoomOut, RotateCcw, Sliders, Image as ImageIcon } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Layers, ZoomIn, ZoomOut, RotateCcw, Sliders, Image as ImageIcon, Paintbrush } from 'lucide-react';
 import { Project } from '@/types';
 import BeforeAfterSlider from './BeforeAfterSlider';
 
@@ -555,6 +555,26 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {project.manufacturers && project.manufacturers.length > 0 && (
+            <div className="pt-3.5 border-t border-slate-100 bg-amber-50/50 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 p-4 sm:p-5 rounded-b-2xl">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <Paintbrush className="w-3.5 h-3.5 text-amber-700" />
+                <span>This project used the following decorating suppliers:</span>
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {project.manufacturers.map((man, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-900 border border-amber-300/80 shadow-xs"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    {man}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

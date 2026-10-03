@@ -165,6 +165,25 @@ function ProjectsContent() {
                     <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
                       {project.description}
                     </p>
+
+                    {project.manufacturers && project.manufacturers.length > 0 && (
+                      <div className="pt-2">
+                        <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block mb-1">
+                          Suppliers &amp; Paints:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {project.manufacturers.map((man, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                              {man}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-800 group-hover:text-amber-700 transition-colors">

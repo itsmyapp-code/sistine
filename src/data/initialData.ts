@@ -4,9 +4,9 @@ import defaultProjects from './projects.json';
 import defaultTestimonials from './testimonials.json';
 
 export const BUSINESS_CONFIG = {
-  name: 'Sistine Decorating',
-  tagline: 'DECORATE • RESTORE • REFURBISH',
-  legalName: 'Sistine Decorating',
+  name: 'Sistine Professional Decorators',
+  tagline: 'Decorate • Restore • Refurbish',
+  legalName: 'Sistine Professional Decorators',
   phone: '07803 258507',
   phoneRaw: '07803258507',
   whatsapp: '447803258507',
@@ -24,6 +24,25 @@ export const BUSINESS_CONFIG = {
   workingHours: 'Monday – Friday: 08:00 – 17:30 | Saturday: By Appointment',
   insuranceCoverage: 'Fully Insured Public Liability',
 };
+
+export const UK_PAINT_MANUFACTURERS: string[] = [
+  'Dulux Trade',
+  'Farrow & Ball',
+  'Little Greene',
+  'Johnstone\'s Trade',
+  'Crown Trade',
+  'Zinsser',
+  'Mylands',
+  'Paint & Paper Library',
+  'Benjamin Moore',
+  'Tikkurila',
+  'Leyland Trade',
+  'Bedec',
+  'Sadolin',
+  'Sikkens',
+  'Osmo',
+  'Hammerite'
+];
 
 export const INITIAL_HERO_SLIDES: HeroSlide[] = defaultHeroSlides as HeroSlide[];
 
