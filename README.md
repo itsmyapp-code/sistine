@@ -1,81 +1,88 @@
-# Apex Decorating & Restoration
+# Sistine Professional Decorators — Dartmouth, Devon
 
-A responsive, high-performance, tradesman-grade website and admin management system built for **developer.itsmyapp.co.uk** under the UK GDPR, Data (Use and Access) Act (DUAA 2025), and Digital Markets, Competition and Consumers Act (DMCCA) compliance framework.
+A responsive, high-performance, tradesman-grade website and custom content management admin portal built for **Sistine Professional Decorators** (`sistine.itsmyapp.co.uk`) serving Dartmouth and the wider South Hams.
 
 ---
 
 ## 🎨 Architectural Overview
 
-- **Framework:** Next.js 14 (App Router, Server & Client Components)
-- **Styling:** Tailwind CSS with bespoke trade color system (`brand`, `trade-slate`, `trade-navy`, `trade-gold`)
-- **Type Safety:** Strict TypeScript (zero implicit `any`, zero placeholders)
-- **Content Management:** Dual-layer Outstatic CMS Git integration paired with a PIN-protected `/admin` client portal.
-- **Client-Side Media Optimization:** HTML5 canvas compression for direct mobile & desktop photo uploads.
-- **Compliance Overlay:** Equal prominence cookie consent layer, Zero Telemetry / Zero Surveillance architecture, full compliance documentation.
+- **Framework:** Next.js 14 (App Router, React 18, Server & Client Components)
+- **Styling:** Vanilla CSS & Tailwind CSS with bespoke coastal trade palette (`amber`, `slate`, `warm neutral #faf9f5`)
+- **Typography:** Google Fonts (`Playfair Display` serif headlines + `Inter` sans-serif copy)
+- **Data & Content Management:** Hybrid architecture pairing client-side local storage with automatic GitHub API backend sync (`src/data/projects.json`, `src/data/heroSlides.json`, `src/data/testimonials.json`)
+- **Admin Security:** PIN-protected `/admin` management portal with session storage authentication
+- **Image Optimization:** In-browser Canvas JPEG compression for fast mobile & desktop photo uploads
+- **Interactive Showcases:** Ken Burns Hero Carousel, Touch-enabled Split-Screen Before & After Slider, and high-resolution Photo Gallery Modal with Zoom & Pan controls
 
 ---
 
-## 🚀 Key Routes & Features
+## 🌐 Site Map & Page Breakdown
 
-### 1. Public Routes
-- **`/` (Homepage & Showcase):**
-  - High-converting hero headline with location coverage badge and click-to-call / WhatsApp direct links.
-  - Interactive **Before & After Comparison Slider** with touch/mouse dragging and keyboard accessibility.
-  - Core Services Grid: *Interior Decorating*, *Exterior Masonry & Silicate Systems*, *Sash Window Care & Bio-Resin Restoration*, *Wallpapering*, *Woodwork & Kitchen Spray Refinishing*, *Commercial Refits*.
-  - Filterable Project Gallery with active before/after switches.
-  - Verified 5-Star Testimonial carousel and cards.
-  - Direct Quote Estimator & Inquiry form with photo upload attachment.
-- **`/projects`:** Dedicated searchable and filterable portfolio with high-resolution responsive images.
-- **`/reviews`:** Testimonials feed with verified review source badges (Facebook, Direct Quote, Google) and direct client submission modal.
-- **`/contact`:** Direct contact channels, workshop address, coverage towns, and emergency timber rot / water damage assessment alerts.
+### 1. Public Pages
+- **`/` (Home Page):**
+  - Full-width Ken Burns auto-advancing hero carousel showcasing Dartmouth projects.
+  - Headline: **"Welcome to Sistine Professional Decorators"** with Tagline: **"Decorate • Restore • Refurbish"**.
+  - Localized Dartmouth and South Hams introductory narrative and story.
+  - Core Service Showcase cards: *Interior Painting & Decorating*, *Exterior Painting & Facades*, and *Specialist Wallpapering*.
+  - Call to Action with click-to-call direct dialling and message link.
+  - Local Business JSON-LD Schema for Dartmouth SEO.
+- **`/projects` (Portfolio & Work Gallery):**
+  - Category filter tabs (*All, Interior, Exterior, Wallpapering*).
+  - Responsive project grid displaying cover images, photo counts, location, description, and **Decorating Suppliers & Paints Used** badges.
+  - Interactive **Project Gallery Modal** featuring multi-image carousel, pinch/click zoom (up to 300%), pan navigation, and optional Before/After split comparison.
+- **`/reviews` (Client Testimonials & Feedback):**
+  - 5-Star verified client reviews with source tags (Facebook, Direct Quote, Google).
+  - Interactive **"Leave a Review"** submission modal with instant client feedback and pending moderation workflow.
+- **`/contact` (Inquiries & Estimates):**
+  - Direct telephone, WhatsApp, and email links.
+  - Service coverage breakdown for Dartmouth, Kingswear, Totnes, and South Hams.
+  - Interactive estimate inquiry form.
 
-### 2. Compliance Routes (COMPLIANCE MD Standard)
-- **`/terms`:** Trade terms of service, quote validity (30 days), property access, paint specifications, 24-month craftsmanship warranty, and liability terms.
-- **`/privacy`:** UK GDPR & DUAA certified privacy notice with principle of data minimization, lawful basis, Subject Access Request (SAR) procedures (30-day SLA), and the mandatory **Public Transparency Callout**.
-- **`/cookies`:** Strictly necessary cookies and first-party local storage documentation with DUAA statutory exemptions.
-- **`/accessibility`:** WCAG 2.1 Level AA statement, keyboard shortcuts, focus rings, and contrast assurances.
-
-### 3. Dedicated Client Portal
-- **`/admin`:**
-  - **PIN Security Barrier:** Numeric PIN gate (default: `1234` or configured via `NEXT_PUBLIC_ADMIN_PIN`) with session persistence in `sessionStorage`.
-  - **Project Uploader:** Title, category, location, before & after photos with automated client-side canvas compression, scope highlights, and homepage feature toggle.
-  - **Testimonial Creator:** Add client reviews, star rating, project type, and verification source.
-  - **Active Record Manager:** Delete, toggle featured status, or reset to seed defaults.
-
----
-
-## 🔒 Mandatory Governance & Transparency
-- **`INTERNAL_GOVERNANCE.md`**:
-  - **LOG A:** Statutory Data Protection Officer (DPO) Need Assessment (confirming no mandatory DPO requirement under UK GDPR Article 37(1)).
-  - **LOG B:** Voluntary Data Privacy Lead Formal Appointment mapped to `sistine@live.co.uk`.
-- **Public Transparency Callout**:
-  > **Data Privacy & Compliance Queries:**
-  > For any questions regarding your data rights, or to submit an inquiry, please contact our Data Privacy Lead directly at [sistine@live.co.uk](mailto:sistine@live.co.uk). We formally acknowledge all compliance submissions within 30 days.
+### 2. Legal & Governance Pages
+- **`/terms`:** Trade terms of service, quotation validity, property access, paint specifications, warranty, and liability terms.
+- **`/privacy`:** UK GDPR and Data (Use and Access) Act (DUAA 2025) compliant privacy notice with 30-day SAR SLA.
+- **`/cookies`:** Cookie Policy outlining strictly necessary cookies and local storage usage with statutory exemptions.
+- **`/accessibility`:** WCAG 2.1 Level AA accessibility statement, keyboard navigation, focus rings, and contrast assurances.
 
 ---
 
-## 🛠️ Local Development & Deployment
+## 🛠️ How the Admin Portal Works (`/admin`)
 
-### Run Locally:
+The Admin Portal is accessed at `/admin` (Default PIN: `1234`).
+
+### 1. Job Galleries & Projects Tab
+- **Add New Job / Edit Job:**
+  - **Title, Category & Location:** Select between *Interior*, *Exterior*, and *Wallpapering*.
+  - **Paint Manufacturers & Decorating Suppliers:** Interactive checklist populated with quality UK paint brands (*Dulux Trade, Farrow & Ball, Little Greene, Johnstone's Trade, Crown Trade, Zinsser, Mylands, Paint & Paper Library, Benjamin Moore, Tikkurila, Leyland Trade, Bedec, Sadolin, Sikkens, Osmo, Hammerite*), plus custom brand input. Only selected brands are displayed on public cards.
+  - **Multi-Photo Uploads:** Upload multiple high-resolution photos at once; images are compressed in-browser for optimal page load speed.
+  - **Cover Photo Selection:** Click **Set as Cover** on any photo to designate the primary showcase image.
+  - **Before & After Slider:** Optionally assign both a Before and After photo to activate the interactive split-screen comparison slider.
+  - **Active Job Management:** Click **Edit** on any job to modify details/suppliers, or **Delete** to remove.
+
+### 2. Hero Carousel Slides Tab
+- **Homepage Showcase Manager:** Add, preview, or remove the full-width slides displayed at the top of the homepage.
+- **Slide Reordering:** Use **▲ Move Up** and **▼ Move Down** buttons to change slide sequence.
+
+### 3. Client Reviews Tab
+- **Review Moderation:** Public submissions arrive with a **Pending** status. Click **Approve** to publish them live.
+- **Direct Review Entry:** Add reviews received verbally, via text message, or email.
+
+### 4. Global Live Publishing (`Update the Website`)
+- Clicking the dark **Update the Website** button pushes all current projects, hero slides, and reviews to the GitHub repository (`itsmyapp-code/sistine`) via the GitHub REST API (`/api/cms`), automatically triggering production deployment across all devices.
+
+---
+
+## 💻 Local Development & Deployment
+
 ```bash
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
 # Open http://localhost:3000
-# Admin portal: http://localhost:3000/admin (Default PIN: 1234)
-```
 
-### Production Build:
-```bash
+# Build for production
 npm run build
 npm run start
-```
-
-### Deploy to Vercel:
-Connect the GitHub repository to Vercel. Set the following environment variables if enabling GitHub Outstatic sync:
-```env
-OST_GITHUB_ID=your_github_oauth_client_id
-OST_GITHUB_SECRET=your_github_oauth_client_secret
-OST_REPO_SLUG=your-org/apex-decorating-restoration
-OST_REPO_BRANCH=main
-NEXT_PUBLIC_ADMIN_PIN=1234
 ```

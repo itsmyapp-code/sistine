@@ -579,10 +579,10 @@ export default function AdminPage() {
       <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white">
-            Sistine Decorating Portal
+            Sistine Professional Decorators Portal
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Manage your hero carousel, edit/delete Dartmouth job galleries, and moderate client reviews.
+            Manage your hero carousel, publish job galleries with paint suppliers, and moderate client reviews.
           </p>
         </div>
 
@@ -615,7 +615,7 @@ export default function AdminPage() {
               </span>
             </div>
             <p className="text-xs text-slate-600 mt-0.5">
-              Add or edit jobs, photos, and reviews below. Click <strong>Update the Website</strong> to publish your changes live.
+              Add or edit jobs, photos, paint suppliers, and reviews. Click <strong>Update the Website</strong> to publish changes live.
             </p>
           </div>
         </div>
@@ -659,7 +659,7 @@ export default function AdminPage() {
                   How-To &amp; Admin Help Instructions
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Quick guide on what you can change and how to manage your website content.
+                  Step-by-step instructions on updating projects, paint suppliers, carousel slides, and reviews.
                 </p>
               </div>
             </div>
@@ -677,13 +677,14 @@ export default function AdminPage() {
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
               <div className="flex items-center gap-2 text-slate-900 font-bold text-sm font-serif">
                 <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center font-sans font-bold">1</span>
-                <span>Job Galleries &amp; Projects</span>
+                <span>Job Galleries &amp; Paint Suppliers</span>
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
-                <li><strong>Adding a Job:</strong> Fill in the job title, select category (<em>Interior, Exterior, Wallpapering</em>), type location &amp; description, and click <strong>Choose Photos</strong>.</li>
-                <li><strong>Multiple Photos:</strong> You can select multiple photos from your device at once.</li>
-                <li><strong>Cover Photo:</strong> The first photo is shown on the gallery card. Click <strong>Set as Cover</strong> on any photo to make it the main image.</li>
-                <li><strong>Editing &amp; Deleting:</strong> Click <strong>Edit</strong> on any job card to change details, or <strong>Delete</strong> to remove it.</li>
+                <li><strong>Adding a Job:</strong> Fill in the job title, category (<em>Interior, Exterior, Wallpapering</em>), location, and work description.</li>
+                <li><strong>Paint Manufacturers:</strong> Tick the UK paint brands used on this project (e.g. <em>Dulux Trade, Farrow &amp; Ball, Little Greene</em>) or type a custom brand. Only ticked brands will appear on the project card.</li>
+                <li><strong>Multiple Photos:</strong> Upload multi-photo galleries with auto-compression. Click <strong>Set Cover</strong> to choose the main showcase photo.</li>
+                <li><strong>Before &amp; After:</strong> Optionally upload or select a Before and After photo to activate the interactive comparison slider.</li>
+                <li><strong>Editing &amp; Deleting:</strong> Click <strong>Edit</strong> on any active project card to update text, suppliers, or images.</li>
               </ul>
             </div>
 
@@ -694,10 +695,10 @@ export default function AdminPage() {
                 <span>Homepage Hero Slides</span>
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
-                <li><strong>What it is:</strong> These are the large full-width showcase photos that glide smoothly at the very top of your homepage.</li>
-                <li><strong>Adding a Slide:</strong> Switch to the <strong>Hero Carousel Slides</strong> tab, upload an image, and provide a short description.</li>
-                <li><strong>Changing the Order:</strong> Click <strong>▲ Move Up</strong> or <strong>▼ Move Down</strong> to decide which photo visitors see first.</li>
-                <li><strong>Deleting:</strong> Remove outdated photos with a single click.</li>
+                <li><strong>Showcase Carousel:</strong> Full-width high-definition photos that glide at the top of your homepage with Ken Burns smooth zooming.</li>
+                <li><strong>Adding a Slide:</strong> Switch to the <strong>Hero Carousel Slides</strong> tab, choose a photo, and add a brief description.</li>
+                <li><strong>Reordering:</strong> Use <strong>▲ Move Up</strong> or <strong>▼ Move Down</strong> to set the presentation order.</li>
+                <li><strong>Deleting:</strong> Remove any slide with a single click.</li>
               </ul>
             </div>
 
@@ -708,9 +709,9 @@ export default function AdminPage() {
                 <span>Client Reviews &amp; Moderation</span>
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
-                <li><strong>Customer Submissions:</strong> Reviews submitted by clients on your website arrive with a <strong>Pending</strong> badge.</li>
-                <li><strong>Approve &amp; Publish:</strong> Click <strong>Approve</strong> to display positive testimonials on the public Reviews page.</li>
-                <li><strong>Add Direct Reviews:</strong> You can also manually add reviews you received via text, phone, or in person.</li>
+                <li><strong>Customer Submissions:</strong> Reviews submitted via the public website arrive in your portal marked as <strong>Pending</strong>.</li>
+                <li><strong>Approve &amp; Publish:</strong> Click <strong>Approve</strong> to display approved 5-star reviews on the public Reviews page.</li>
+                <li><strong>Manual Review Entry:</strong> Add direct client feedback received via email, text, or verbal recommendation.</li>
               </ul>
             </div>
 
@@ -721,9 +722,9 @@ export default function AdminPage() {
                 <span>Publishing to the Live Site</span>
               </div>
               <ul className="text-xs text-slate-700 space-y-1.5 list-disc pl-5 leading-relaxed">
-                <li>Whenever you make changes, click the dark <strong>Update the Website</strong> button at the top.</li>
-                <li>Your updates are automatically saved and broadcast across all devices, phones, and computers.</li>
-                <li>Visitors to both <code>sistine.itsmyapp.co.uk</code> and your main website will immediately see the new work!</li>
+                <li>After adding or modifying projects, slides, or reviews, click the dark <strong>Update the Website</strong> button.</li>
+                <li>Your updates are synced directly to the GitHub repository and deployed to the live production site across all devices.</li>
+                <li>Both desktop and mobile visitors will immediately see your newest work and supplier badges!</li>
               </ul>
             </div>
           </div>
