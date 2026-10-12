@@ -76,7 +76,11 @@ export function getStoredProjects(): Project[] {
       localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(INITIAL_PROJECTS));
       return INITIAL_PROJECTS;
     }
-    return JSON.parse(data);
+    const parsed: Project[] = JSON.parse(data);
+    if (parsed.some((p) => typeof p.order === 'number')) {
+      return [...parsed].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+    }
+    return parsed;
   } catch (e) {
     console.error('Error reading projects from storage', e);
     return INITIAL_PROJECTS;
@@ -86,10 +90,11 @@ export function getStoredProjects(): Project[] {
 export function saveStoredProjects(projects: Project[]): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+    const withOrder = projects.map((p, idx) => ({ ...p, order: idx + 1 }));
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(withOrder));
     window.dispatchEvent(new Event('apex_data_updated'));
     // Trigger online sync in background
-    syncDataToOnline('projects', projects);
+    syncDataToOnline('projects', withOrder);
   } catch (e) {
     console.error('Error saving projects to storage', e);
   }

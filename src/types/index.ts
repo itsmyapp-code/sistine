@@ -25,6 +25,7 @@ export interface Project {
   featured?: boolean;
   publishedAt: string;
   isDraft?: boolean;
+  order?: number;
 }
 
 export type ReviewSource = 'Facebook' | 'Direct Quote' | 'Google Verified';

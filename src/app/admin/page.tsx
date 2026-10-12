@@ -32,7 +32,11 @@ import {
   Info,
   Settings,
   Eye,
-  Paintbrush
+  Paintbrush,
+  ChevronsUp,
+  ChevronsDown,
+  ArrowUpDown,
+  SlidersHorizontal
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { Project, Testimonial, ProjectCategory, HeroSlide } from '@/types';
@@ -110,6 +114,9 @@ export default function AdminPage() {
   const [isCompressingBefore, setIsCompressingBefore] = useState(false);
   const [isCompressingAfter, setIsCompressingAfter] = useState(false);
   const [projectSuccessMsg, setProjectSuccessMsg] = useState('');
+  const [newProjectPosition, setNewProjectPosition] = useState<'top' | 'bottom'>('top');
+  const [adminGalleryFilter, setAdminGalleryFilter] = useState<'All' | ProjectCategory>('All');
+  const [showPresetSortMenu, setShowPresetSortMenu] = useState(false);
 
   // Hero form state
   const [newHeroUrl, setNewHeroUrl] = useState('');
@@ -381,14 +388,181 @@ export default function AdminPage() {
         publishedAt: new Date().toISOString().split('T')[0],
       };
 
-      const updated = [newProj, ...projects];
+      const updated = newProjectPosition === 'top' 
+        ? [newProj, ...projects] 
+        : [...projects, newProj];
       saveStoredProjects(updated);
       setProjects(updated);
-      setProjectSuccessMsg(`Project with ${newProj.images.length} photos published!`);
+      setProjectSuccessMsg(`Project with ${newProj.images.length} photos published at position ${newProjectPosition === 'top' ? '#1' : `#${updated.length}`}!`);
       cancelEditProject();
     }
 
     setTimeout(() => setProjectSuccessMsg(''), 4000);
+  };
+
+  const handleMoveProject = (projectId: string, direction: 'up' | 'down' | 'top' | 'bottom') => {
+    const currentCategory = adminGalleryFilter;
+    const projectToMove = projects.find(p => p.id === projectId);
+    if (!projectToMove) return;
+
+    if (currentCategory === 'All') {
+      const currentIndex = projects.findIndex(p => p.id === projectId);
+      if (currentIndex === -1) return;
+      if (direction === 'up' && currentIndex === 0) return;
+      if (direction === 'down' && currentIndex === projects.length - 1) return;
+      if (direction === 'top' && currentIndex === 0) return;
+      if (direction === 'bottom' && currentIndex === projects.length - 1) return;
+
+      let targetIndex = currentIndex;
+      if (direction === 'up') targetIndex = currentIndex - 1;
+      else if (direction === 'down') targetIndex = currentIndex + 1;
+      else if (direction === 'top') targetIndex = 0;
+      else if (direction === 'bottom') targetIndex = projects.length - 1;
+
+      const copy = [...projects];
+      const [moved] = copy.splice(currentIndex, 1);
+      copy.splice(targetIndex, 0, moved);
+
+      saveStoredProjects(copy);
+      setProjects(copy);
+      setProjectSuccessMsg(`Moved "${projectToMove.title}" to position #${targetIndex + 1} of all projects.`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
+    } else {
+      // Reordering within a specific category gallery (Interior, Exterior, Wallpapering)
+      const catProjects = projects.filter(p => p.category === currentCategory);
+      const currentIndexInCat = catProjects.findIndex(p => p.id === projectId);
+      if (currentIndexInCat === -1) return;
+      if (direction === 'up' && currentIndexInCat === 0) return;
+      if (direction === 'down' && currentIndexInCat === catProjects.length - 1) return;
+      if (direction === 'top' && currentIndexInCat === 0) return;
+      if (direction === 'bottom' && currentIndexInCat === catProjects.length - 1) return;
+
+      let targetIndexInCat = currentIndexInCat;
+      if (direction === 'up') targetIndexInCat = currentIndexInCat - 1;
+      else if (direction === 'down') targetIndexInCat = currentIndexInCat + 1;
+      else if (direction === 'top') targetIndexInCat = 0;
+      else if (direction === 'bottom') targetIndexInCat = catProjects.length - 1;
+
+      const copyCat = [...catProjects];
+      const [moved] = copyCat.splice(currentIndexInCat, 1);
+      copyCat.splice(targetIndexInCat, 0, moved);
+
+      // Reconstruct master `projects` array by updating the category slots in sequence
+      let catPointer = 0;
+      const newMaster = projects.map(p => {
+        if (p.category === currentCategory) {
+          const replacement = copyCat[catPointer];
+          catPointer++;
+          return replacement;
+        }
+        return p;
+      });
+
+      saveStoredProjects(newMaster);
+      setProjects(newMaster);
+      setProjectSuccessMsg(`Moved "${projectToMove.title}" to position #${targetIndexInCat + 1} in ${currentCategory} gallery.`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
+    }
+  };
+
+  const handleSetProjectPosition = (projectId: string, targetPos1Indexed: number) => {
+    const currentCategory = adminGalleryFilter;
+    const projectToMove = projects.find(p => p.id === projectId);
+    if (!projectToMove) return;
+
+    if (currentCategory === 'All') {
+      const currentIndex = projects.findIndex(p => p.id === projectId);
+      if (currentIndex === -1) return;
+      const targetIndex = Math.max(0, Math.min(projects.length - 1, targetPos1Indexed - 1));
+      if (targetIndex === currentIndex) return;
+
+      const copy = [...projects];
+      const [moved] = copy.splice(currentIndex, 1);
+      copy.splice(targetIndex, 0, moved);
+
+      saveStoredProjects(copy);
+      setProjects(copy);
+      setProjectSuccessMsg(`Moved "${projectToMove.title}" to position #${targetIndex + 1} of all projects.`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
+    } else {
+      const catProjects = projects.filter(p => p.category === currentCategory);
+      const currentIndexInCat = catProjects.findIndex(p => p.id === projectId);
+      if (currentIndexInCat === -1) return;
+      const targetIndexInCat = Math.max(0, Math.min(catProjects.length - 1, targetPos1Indexed - 1));
+      if (targetIndexInCat === currentIndexInCat) return;
+
+      const copyCat = [...catProjects];
+      const [moved] = copyCat.splice(currentIndexInCat, 1);
+      copyCat.splice(targetIndexInCat, 0, moved);
+
+      let catPointer = 0;
+      const newMaster = projects.map(p => {
+        if (p.category === currentCategory) {
+          const replacement = copyCat[catPointer];
+          catPointer++;
+          return replacement;
+        }
+        return p;
+      });
+
+      saveStoredProjects(newMaster);
+      setProjects(newMaster);
+      setProjectSuccessMsg(`Moved "${projectToMove.title}" to position #${targetIndexInCat + 1} in ${currentCategory} gallery.`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
+    }
+  };
+
+  const handlePresetSort = (type: 'az' | 'za' | 'newest' | 'oldest' | 'reverse') => {
+    const currentCategory = adminGalleryFilter;
+    setShowPresetSortMenu(false);
+
+    if (currentCategory === 'All') {
+      let copy = [...projects];
+      if (type === 'az') {
+        copy.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (type === 'za') {
+        copy.sort((a, b) => b.title.localeCompare(a.title));
+      } else if (type === 'newest') {
+        copy.sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime());
+      } else if (type === 'oldest') {
+        copy.sort((a, b) => new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime());
+      } else if (type === 'reverse') {
+        copy.reverse();
+      }
+      saveStoredProjects(copy);
+      setProjects(copy);
+      setProjectSuccessMsg(`Reordered all projects (${type.toUpperCase()}).`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
+    } else {
+      const catProjects = projects.filter(p => p.category === currentCategory);
+      let copyCat = [...catProjects];
+      if (type === 'az') {
+        copyCat.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (type === 'za') {
+        copyCat.sort((a, b) => b.title.localeCompare(a.title));
+      } else if (type === 'newest') {
+        copyCat.sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime());
+      } else if (type === 'oldest') {
+        copyCat.sort((a, b) => new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime());
+      } else if (type === 'reverse') {
+        copyCat.reverse();
+      }
+
+      let catPointer = 0;
+      const newMaster = projects.map(p => {
+        if (p.category === currentCategory) {
+          const replacement = copyCat[catPointer];
+          catPointer++;
+          return replacement;
+        }
+        return p;
+      });
+
+      saveStoredProjects(newMaster);
+      setProjects(newMaster);
+      setProjectSuccessMsg(`Reordered ${currentCategory} gallery projects (${type.toUpperCase()}).`);
+      setTimeout(() => setProjectSuccessMsg(''), 3000);
+    }
   };
 
   const handleDeleteProject = (id: string, title: string) => {
@@ -683,7 +857,7 @@ export default function AdminPage() {
                 <li><strong>Adding a Job:</strong> Fill in the job title, category (<em>Interior, Exterior, Wallpapering</em>), location, and work description.</li>
                 <li><strong>Paint Manufacturers:</strong> Tick the UK paint brands used on this project (e.g. <em>Dulux Trade, Farrow &amp; Ball, Little Greene</em>) or type a custom brand. Only ticked brands will appear on the project card.</li>
                 <li><strong>Multiple Photos:</strong> Upload multi-photo galleries with auto-compression. Click <strong>Set Cover</strong> to choose the main showcase photo.</li>
-                <li><strong>Before &amp; After:</strong> Optionally upload or select a Before and After photo to activate the interactive comparison slider.</li>
+                <li><strong>Ordering Jobs &amp; Galleries:</strong> Use the gallery filter tabs (<em>All, Interior, Exterior, Wallpapering</em>) above the job list to view jobs by gallery. Use <strong>▲ / ▼</strong> (or <strong>⏫ / ⏬</strong> / direct position selector) to pick the exact order jobs appear on the public website.</li>
                 <li><strong>Editing &amp; Deleting:</strong> Click <strong>Edit</strong> on any active project card to update text, suppliers, or images.</li>
               </ul>
             </div>
@@ -1292,6 +1466,36 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              {!editingProjectId && (
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                  <span className="font-semibold uppercase text-[11px] text-slate-700">Initial Position in Portfolio:</span>
+                  <div className="flex items-center gap-3">
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newProjectPosition"
+                        value="top"
+                        checked={newProjectPosition === 'top'}
+                        onChange={() => setNewProjectPosition('top')}
+                        className="text-slate-900 focus:ring-slate-900"
+                      />
+                      <span>Top of list (#1)</span>
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="newProjectPosition"
+                        value="bottom"
+                        checked={newProjectPosition === 'bottom'}
+                        onChange={() => setNewProjectPosition('bottom')}
+                        className="text-slate-900 focus:ring-slate-900"
+                      />
+                      <span>Bottom of list</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
               <div className="pt-2 flex gap-3">
                 <button
                   type="submit"
@@ -1325,85 +1529,313 @@ export default function AdminPage() {
             </form>
           </div>
 
-          {/* Active Projects List */}
+          {/* Active Projects & Galleries Manager */}
           <div className="lg:col-span-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-serif font-bold text-slate-900">
-                Active Job Galleries ({projects.length})
-              </h2>
-              <span className="text-xs text-slate-500">Click &quot;Edit&quot; to modify text or photos</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div>
+                <h2 className="text-xl font-serif font-bold text-slate-900">
+                  Active Job Galleries ({projects.length})
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Pick the order jobs are shown, both overall and in each gallery.
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {projects.map((p) => {
-                const count = p.images?.length || 1;
-                const isCurrent = editingProjectId === p.id;
+            {/* Gallery Category Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setAdminGalleryFilter('All')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  adminGalleryFilter === 'All'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                }`}
+              >
+                All Galleries ({projects.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminGalleryFilter('Interior')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  adminGalleryFilter === 'Interior'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                }`}
+              >
+                Interior ({projects.filter(p => p.category === 'Interior').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminGalleryFilter('Exterior')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  adminGalleryFilter === 'Exterior'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                }`}
+              >
+                Exterior ({projects.filter(p => p.category === 'Exterior').length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminGalleryFilter('Wallpapering')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  adminGalleryFilter === 'Wallpapering'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                }`}
+              >
+                Wallpapering ({projects.filter(p => p.category === 'Wallpapering').length})
+              </button>
+            </div>
 
+            {/* Ordering Context & Quick Sort Toolbar */}
+            {(() => {
+              const displayedProjects = adminGalleryFilter === 'All' 
+                ? projects 
+                : projects.filter(p => p.category === adminGalleryFilter);
+
+              return (
+                <div className="flex items-center justify-between text-xs text-slate-600 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs">
+                  <div className="flex items-center gap-1.5">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-amber-700" />
+                    <span>
+                      {adminGalleryFilter === 'All' ? (
+                        <span>Display order for: <strong>All Completed Work</strong> ({projects.length})</span>
+                      ) : (
+                        <span>Display order in: <strong>{adminGalleryFilter} Gallery</strong> ({displayedProjects.length} jobs)</span>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowPresetSortMenu(!showPresetSortMenu)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 font-medium transition-colors border border-slate-200 text-xs"
+                      title="Sort presets"
+                    >
+                      <ArrowUpDown className="w-3 h-3 text-slate-500" />
+                      <span>Quick Sort</span>
+                    </button>
+
+                    {showPresetSortMenu && (
+                      <div className="absolute right-0 mt-1 w-52 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-30 space-y-0.5">
+                        <button
+                          type="button"
+                          onClick={() => handlePresetSort('newest')}
+                          className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-between"
+                        >
+                          <span>Newest Published First</span>
+                          <span className="text-[10px] text-slate-400">📅</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetSort('oldest')}
+                          className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-between"
+                        >
+                          <span>Oldest Published First</span>
+                          <span className="text-[10px] text-slate-400">📅</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetSort('az')}
+                          className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-between"
+                        >
+                          <span>Title (A to Z)</span>
+                          <span className="text-[10px] text-slate-400">🔤</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetSort('za')}
+                          className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-between"
+                        >
+                          <span>Title (Z to A)</span>
+                          <span className="text-[10px] text-slate-400">🔤</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePresetSort('reverse')}
+                          className="w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-between border-t border-slate-100 pt-1"
+                        >
+                          <span>Reverse Current Order</span>
+                          <span className="text-[10px] text-slate-400">🔄</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* List of Projects in Selected View */}
+            {(() => {
+              const displayedProjects = adminGalleryFilter === 'All' 
+                ? projects 
+                : projects.filter(p => p.category === adminGalleryFilter);
+
+              if (displayedProjects.length === 0) {
                 return (
-                  <div 
-                    key={p.id} 
-                    className={`bg-white p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 shadow-xs ${
-                      isCurrent ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/20' : 'border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3.5">
-                      <div className="relative w-20 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={p.afterImage || p.images?.[0]} alt={p.title} className="w-full h-full object-cover" />
-                        <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                          {count}📷
-                        </span>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-1">{p.title}</h3>
-                          {p.beforeImage && p.afterImage && (
-                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded border border-amber-300">
-                              B/A Slider
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{p.category} • {p.location}</p>
-                        {p.manufacturers && p.manufacturers.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {p.manufacturers.map((m, idx) => (
-                              <span key={idx} className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-semibold rounded border border-amber-200">
-                                {m}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{p.description}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => startEditProject(p)}
-                        className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
-                          isCurrent 
-                            ? 'bg-amber-600 text-white' 
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                        }`}
-                        title="Edit Project Details & Photos"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteProject(p.id, p.title)}
-                        className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                        title="Delete Project"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center space-y-2">
+                    <p className="text-sm font-serif text-slate-600">
+                      No jobs currently in the <strong>{adminGalleryFilter}</strong> gallery.
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      Use the form on the left to add a new job to this category, or select &quot;All Galleries&quot;.
+                    </p>
                   </div>
                 );
-              })}
-            </div>
+              }
+
+              return (
+                <div className="space-y-3">
+                  {displayedProjects.map((p, idx) => {
+                    const count = p.images?.length || 1;
+                    const isCurrent = editingProjectId === p.id;
+                    const globalPos = projects.findIndex(x => x.id === p.id) + 1;
+
+                    return (
+                      <div 
+                        key={p.id} 
+                        className={`bg-white p-3.5 sm:p-4 rounded-2xl border transition-all flex items-start justify-between gap-3 shadow-xs ${
+                          isCurrent ? 'border-amber-500 ring-2 ring-amber-500/20 bg-amber-50/20' : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        {/* Position Badge & Order Controls */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex flex-col items-center justify-center w-11 py-1 px-0.5 bg-slate-50 rounded-xl border border-slate-200/80 shrink-0">
+                            <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Pos</span>
+                            <span className="text-sm font-bold font-mono text-slate-900 leading-none my-0.5">#{idx + 1}</span>
+                            {adminGalleryFilter !== 'All' && (
+                              <span className="text-[9px] text-slate-400 font-mono" title={`Overall portfolio position: #${globalPos}`}>
+                                #{globalPos}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col items-center gap-0.5 shrink-0">
+                            <div className="flex items-center gap-0.5">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => handleMoveProject(p.id, 'top')}
+                                className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-20 transition-colors"
+                                title={`Move to Top ${adminGalleryFilter !== 'All' ? `of ${adminGalleryFilter} gallery` : 'of all projects'}`}
+                              >
+                                <ChevronsUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => handleMoveProject(p.id, 'up')}
+                                className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-20 transition-colors"
+                                title={`Move Up ${adminGalleryFilter !== 'All' ? `in ${adminGalleryFilter} gallery` : 'in all projects'}`}
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            <div className="flex items-center gap-0.5">
+                              <button
+                                type="button"
+                                disabled={idx === displayedProjects.length - 1}
+                                onClick={() => handleMoveProject(p.id, 'down')}
+                                className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-20 transition-colors"
+                                title={`Move Down ${adminGalleryFilter !== 'All' ? `in ${adminGalleryFilter} gallery` : 'in all projects'}`}
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === displayedProjects.length - 1}
+                                onClick={() => handleMoveProject(p.id, 'bottom')}
+                                className="p-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-20 transition-colors"
+                                title={`Move to Bottom ${adminGalleryFilter !== 'All' ? `of ${adminGalleryFilter} gallery` : 'of all projects'}`}
+                              >
+                                <ChevronsDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {displayedProjects.length > 1 && (
+                              <select
+                                value={idx + 1}
+                                onChange={(e) => handleSetProjectPosition(p.id, Number(e.target.value))}
+                                className="text-[10px] font-mono font-semibold py-0.5 px-1 bg-white border border-slate-200 rounded text-slate-700 hover:border-slate-400 focus:ring-0 cursor-pointer"
+                                title="Jump directly to position"
+                              >
+                                {displayedProjects.map((_, posIdx) => (
+                                  <option key={posIdx + 1} value={posIdx + 1}>
+                                    #{posIdx + 1}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Project Details */}
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="relative w-16 h-14 sm:w-20 sm:h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={p.afterImage || p.images?.[0]} alt={p.title} className="w-full h-full object-cover" />
+                            <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1 py-0.5 rounded leading-none">
+                              {count}📷
+                            </span>
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h3 className="font-serif font-bold text-sm text-slate-900 line-clamp-1">{p.title}</h3>
+                              {p.beforeImage && p.afterImage && (
+                                <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 text-[10px] font-bold rounded border border-amber-300">
+                                  B/A
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-0.5">{p.category} • {p.location}</p>
+                            {p.manufacturers && p.manufacturers.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {p.manufacturers.map((m, mIdx) => (
+                                  <span key={mIdx} className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
+                                    {m}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{p.description}</p>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => startEditProject(p)}
+                            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors ${
+                              isCurrent 
+                                ? 'bg-amber-600 text-white' 
+                                : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                            }`}
+                            title="Edit Project Details & Photos"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProject(p.id, p.title)}
+                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                            title="Delete Project"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
         </div>
