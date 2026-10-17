@@ -123,7 +123,6 @@ export default function QuoteModal({ isOpen, onClose, preselectedService }: Quot
               >
                 <option value="Interior Painting">Interior Painting &amp; Decorating</option>
                 <option value="Exterior Painting">Exterior Painting</option>
-                <option value="Wallpapering">Wallpapering &amp; Feature Walls</option>
                 <option value="General Refresh">Full House Decorating</option>
               </select>
             </div>

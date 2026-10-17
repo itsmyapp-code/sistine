@@ -23,11 +23,11 @@ A responsive, high-performance, tradesman-grade website and custom content manag
   - Full-width Ken Burns auto-advancing hero carousel showcasing Dartmouth projects.
   - Headline: **"Welcome to Sistine Professional Decorators"** with Tagline: **"Decorate • Restore • Refurbish"**.
   - Localized Dartmouth and South Hams introductory narrative and story.
-  - Core Service Showcase cards: *Interior Painting & Decorating*, *Exterior Painting & Facades*, and *Specialist Wallpapering*.
+  - Core Service Showcase cards: *Interior Painting & Decorating* and *Exterior Painting & Facades*.
   - Call to Action with click-to-call direct dialling and message link.
   - Local Business JSON-LD Schema for Dartmouth SEO.
 - **`/projects` (Portfolio & Work Gallery):**
-  - Category filter tabs (*All, Interior, Exterior, Wallpapering*).
+  - Category filter tabs (*All, Interior, Exterior*).
   - Responsive project grid displaying cover images, photo counts, location, description, and **Decorating Suppliers & Paints Used** badges.
   - Interactive **Project Gallery Modal** featuring multi-image carousel, pinch/click zoom (up to 300%), pan navigation, and optional Before/After split comparison.
 - **`/reviews` (Client Testimonials & Feedback):**
@@ -52,7 +52,7 @@ The Admin Portal is accessed at `/admin` (Default PIN: `1234`).
 
 ### 1. Job Galleries & Projects Tab
 - **Add New Job / Edit Job:**
-  - **Title, Category & Location:** Select between *Interior*, *Exterior*, and *Wallpapering*.
+  - **Title, Category & Location:** Select between *Interior* and *Exterior*.
   - **Paint Manufacturers & Decorating Suppliers:** Interactive checklist populated with quality UK paint brands (*Dulux Trade, Farrow & Ball, Little Greene, Johnstone's Trade, Crown Trade, Zinsser, Mylands, Paint & Paper Library, Benjamin Moore, Tikkurila, Leyland Trade, Bedec, Sadolin, Sikkens, Osmo, Hammerite*), plus custom brand input. Only selected brands are displayed on public cards.
   - **Multi-Photo Uploads:** Upload multiple high-resolution photos at once; images are compressed in-browser for optimal page load speed.
   - **Cover Photo Selection:** Click **Set as Cover** on any photo to designate the primary showcase image.

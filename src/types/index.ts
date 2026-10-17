@@ -1,7 +1,6 @@
 export type ProjectCategory = 
   | 'Interior'
-  | 'Exterior'
-  | 'Wallpapering';
+  | 'Exterior';
 
 export interface HeroSlide {
   id: string;

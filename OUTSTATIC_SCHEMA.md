@@ -6,7 +6,7 @@ This application is designed for instant out-of-the-box operation and full Git-b
 - **Location:** `outstatic/content/projects`
 - **Fields:**
   - `title` (String, required): Descriptive title of the project (e.g., "Georgian Townhouse Interior & Cornice Restoration")
-  - `category` (Select, required): "Interior" | "Exterior" | "Wallpapering" | "Restoration & Woodwork" | "Commercial"
+  - `category` (Select, required): "Interior" | "Exterior" | "Restoration & Woodwork" | "Commercial"
   - `location` (String, required): Town/City and Postcode area (e.g., "Cheltenham, Gloucestershire")
   - `beforeImage` (Image upload, optional): High-resolution photo before restoration
   - `afterImage` (Image upload, required): High-resolution photo of completed finish

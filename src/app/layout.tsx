@@ -30,8 +30,7 @@ export const metadata: Metadata = {
     "Sistine Decorating Dartmouth",
     "painting Southtown Dartmouth",
     "interior painters Dartmouth",
-    "exterior decorating South Devon",
-    "wallpapering Dartmouth"
+    "exterior decorating South Devon"
   ],
   authors: [{ name: "Sistine Decorating" }],
   creator: "Sistine Decorating",

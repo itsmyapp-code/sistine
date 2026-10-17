@@ -428,7 +428,7 @@ export default function AdminPage() {
       setProjectSuccessMsg(`Moved "${projectToMove.title}" to position #${targetIndex + 1} of all projects.`);
       setTimeout(() => setProjectSuccessMsg(''), 3000);
     } else {
-      // Reordering within a specific category gallery (Interior, Exterior, Wallpapering)
+      // Reordering within a specific category gallery (Interior, Exterior)
       const catProjects = projects.filter(p => p.category === currentCategory);
       const currentIndexInCat = catProjects.findIndex(p => p.id === projectId);
       if (currentIndexInCat === -1) return;
@@ -854,10 +854,10 @@ export default function AdminPage() {
                 <span>Job Galleries &amp; Paint Suppliers</span>
               </div>
               <ul className="text-xs text-slate-600 space-y-1.5 list-disc pl-5 leading-relaxed">
-                <li><strong>Adding a Job:</strong> Fill in the job title, category (<em>Interior, Exterior, Wallpapering</em>), location, and work description.</li>
+                <li><strong>Adding a Job:</strong> Fill in the job title, category (<em>Interior, Exterior</em>), location, and work description.</li>
                 <li><strong>Paint Manufacturers:</strong> Tick the UK paint brands used on this project (e.g. <em>Dulux Trade, Farrow &amp; Ball, Little Greene</em>) or type a custom brand. Only ticked brands will appear on the project card.</li>
                 <li><strong>Multiple Photos:</strong> Upload multi-photo galleries with auto-compression. Click <strong>Set Cover</strong> to choose the main showcase photo.</li>
-                <li><strong>Ordering Jobs &amp; Galleries:</strong> Use the gallery filter tabs (<em>All, Interior, Exterior, Wallpapering</em>) above the job list to view jobs by gallery. Use <strong>▲ / ▼</strong> (or <strong>⏫ / ⏬</strong> / direct position selector) to pick the exact order jobs appear on the public website.</li>
+                <li><strong>Ordering Jobs &amp; Galleries:</strong> Use the gallery filter tabs (<em>All, Interior, Exterior</em>) above the job list to view jobs by gallery. Use <strong>▲ / ▼</strong> (or <strong>⏫ / ⏬</strong> / direct position selector) to pick the exact order jobs appear on the public website.</li>
                 <li><strong>Editing &amp; Deleting:</strong> Click <strong>Edit</strong> on any active project card to update text, suppliers, or images.</li>
               </ul>
             </div>
@@ -1117,7 +1117,6 @@ export default function AdminPage() {
                   >
                     <option value="Interior">Interior Painting</option>
                     <option value="Exterior">Exterior Painting</option>
-                    <option value="Wallpapering">Specialist Wallpapering</option>
                   </select>
                 </div>
                 <div>
@@ -1576,17 +1575,6 @@ export default function AdminPage() {
                 }`}
               >
                 Exterior ({projects.filter(p => p.category === 'Exterior').length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdminGalleryFilter('Wallpapering')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                  adminGalleryFilter === 'Wallpapering'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                }`}
-              >
-                Wallpapering ({projects.filter(p => p.category === 'Wallpapering').length})
               </button>
             </div>
 

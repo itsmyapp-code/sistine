@@ -9,7 +9,7 @@ import { Project } from '@/types';
 import { getStoredProjects } from '@/lib/storage';
 import ProjectGalleryModal from '@/components/ProjectGalleryModal';
 
-const categories = ['All', 'Interior', 'Exterior', 'Wallpapering'];
+const categories = ['All', 'Interior', 'Exterior'];
 
 function ProjectsContent() {
   const searchParams = useSearchParams();

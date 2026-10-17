@@ -269,7 +269,6 @@ export default function ContactPage() {
                 >
                   <option value="Interior Painting">Interior Painting &amp; Decorating</option>
                   <option value="Exterior Painting">Exterior Painting</option>
-                  <option value="Wallpapering">Wallpapering &amp; Feature Walls</option>
                   <option value="General Refresh">Full Property Refresh</option>
                 </select>
               </div>

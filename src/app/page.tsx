@@ -7,8 +7,7 @@ import {
   Mail, 
   ArrowRight, 
   Paintbrush, 
-  Home, 
-  Layers
+  Home
 } from 'lucide-react';
 import HeroCarousel from '@/components/HeroCarousel';
 import { BUSINESS_CONFIG } from '@/data/initialData';
@@ -18,7 +17,7 @@ export default function HomePage() {
     '@context': 'https://schema.org',
     '@type': 'Painter',
     'name': 'Sistine Professional Decorators',
-    'description': 'Professional residential painting and decorating services in Dartmouth and the South Hams. Interior and exterior painting, specialist wallpapering, and refurbishment.',
+    'description': 'Professional residential painting and decorating services in Dartmouth and the South Hams. Interior and exterior painting, and refurbishment.',
     'image': 'https://sistine.itsmyapp.co.uk/images/hero-1.jpg',
     '@id': 'https://sistine.itsmyapp.co.uk',
     'url': 'https://sistine.itsmyapp.co.uk',
@@ -70,13 +69,6 @@ export default function HomePage() {
             'name': 'Exterior Painting & Facades',
           },
         },
-        {
-          '@type': 'Offer',
-          'itemOffered': {
-            '@type': 'Service',
-            'name': 'Specialist Wallpapering',
-          },
-        },
       ],
     },
     'sameAs': [
@@ -100,14 +92,6 @@ export default function HomePage() {
       gradient: 'from-blue-700 to-slate-900',
       description: 'Long-lasting weather protection for coastal masonry, rendered walls, exterior timbers, and front doors throughout Dartmouth.',
       buttonText: 'View Exterior Projects',
-    },
-    {
-      title: 'Specialist Wallpapering',
-      href: '/projects?category=Wallpapering',
-      icon: Layers,
-      gradient: 'from-amber-700 to-slate-900',
-      description: 'Precision hanging of designer feature wallpapers, lining paper, and pattern matching with meticulous care.',
-      buttonText: 'See Wallpaper Finishes',
     },
   ];
 
@@ -138,12 +122,12 @@ export default function HomePage() {
                 Based in Dartmouth, Sistine Decorators provides professional interior and exterior painting services for homeowners, holiday cottages, and residential properties across Dartmouth and the wider South Hams.
               </p>
               <p>
-                We believe that good decorating is built on thorough preparation, attention to detail, and a tidy, respectful way of working in your home. Whether refreshing a single room, wallpapering a feature wall, or repainting an entire coastal facade, we deliver clean, lasting results.
+                We believe that good decorating is built on thorough preparation, attention to detail, and a tidy, respectful way of working in your home. Whether refreshing a single room or repainting an entire coastal facade, we deliver clean, lasting results.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8 sm:gap-10">
             {services.map((item, idx) => {
               const IconComp = item.icon;
               return (

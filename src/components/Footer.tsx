@@ -60,7 +60,7 @@ export default function Footer() {
               <Logo variant="light" className="h-12" />
             </div>
             <p className="text-slate-300 text-sm leading-relaxed max-w-lg">
-              Local painter and decorator based in Dartmouth, Devon. Offering quality interior and exterior painting, wallpapering, and friendly, dependable craftsmanship.
+              Local painter and decorator based in Dartmouth, Devon. Offering quality interior and exterior painting, and friendly, dependable craftsmanship.
             </p>
           </div>
 

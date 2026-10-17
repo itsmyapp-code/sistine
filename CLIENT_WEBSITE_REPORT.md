@@ -35,17 +35,16 @@ The visual design is tailored specifically to a high-end coastal painting and de
 - **Full-Width Ken Burns Hero Carousel:** A cinematic showcase at the top of the homepage featuring smooth, gradual zoom and pan animations over completed Dartmouth projects.
 - **Headline & Tagline:** Clear positioning — *"Welcome to Sistine Professional Decorators"* with the brand tagline *"Decorate • Restore • Refurbish"*.
 - **Local Story & Working Ethos:** A dedicated introduction highlighting attention to detail, clean and respectful working practices in clients' homes, and Dartmouth roots.
-- **Three Core Service Cards:**
+- **Two Core Service Cards:**
   1. *Interior Painting & Decorating* — Living spaces, bedrooms, cornices, and woodwork.
   2. *Exterior Painting & Facades* — Coastal masonry weather-protection, rendered walls, exterior timbers, and front doors.
-  3. *Specialist Wallpapering* — Designer feature walls, lining paper, pattern-matching, and precision seams.
 - **Direct Contact Banner:** One-tap telephone dialling (`07803 258507`) and contact links.
 - **Footer Navigation & Legal Badges:** Contact details, working hours, insurance accreditation ("Fully Insured Public Liability"), and links to all statutory policies.
 
 ---
 
 ### 3.2 Portfolio & Work Completed (`/projects`)
-- **Category Filter Tabs:** Visitors can seamlessly switch between **All**, **Interior**, **Exterior**, and **Specialist Wallpapering** galleries.
+- **Category Filter Tabs:** Visitors can seamlessly switch between **All**, **Interior**, and **Exterior** galleries.
 - **Project Cards:** Each job displays:
   - High-resolution cover photo.
   - Photo count badge (e.g. `4 📷`).
@@ -60,7 +59,7 @@ The visual design is tailored specifically to a high-end coastal painting and de
 ### 3.3 Interactive Project Photo Gallery Modal
 Clicking any project card opens a full-screen, high-resolution viewing experience:
 - **Multi-Image Photo Carousel:** Visitors can browse through every photo captured for that job using arrow navigation, swipe gestures on mobile, or thumbnail selectors.
-- **Pinch-to-Zoom & Pan (Up to 300%):** Prospective clients can zoom in close on painted cornices, woodwork cut-ins, and wallpaper seams to inspect workmanship quality.
+- **Pinch-to-Zoom & Pan (Up to 300%):** Prospective clients can zoom in close on painted cornices and woodwork cut-ins to inspect workmanship quality.
 - **Touch Gesture Support:** Supports double-tap zoom, pinch-to-zoom, and smooth drag-panning on smartphones and tablets.
 - **Interactive Split-Screen Before & After Slider:** For jobs with before/after photography, visitors can drag an interactive divider handle back and forth to witness the transformation side-by-side.
 
@@ -101,7 +100,7 @@ The portal is accessible at `/admin` and protected by a secure 4-digit PIN (defa
 ### 4.1 Tab 1: Job Galleries & Projects Manager
 
 #### A. Publishing New Jobs & Uploading Photos
-- **Job Details:** Enter title, category (*Interior*, *Exterior*, *Wallpapering*), and Devon location.
+- **Job Details:** Enter title, category (*Interior*, *Exterior*), and Devon location.
 - **Paint Suppliers & Brands Checklist:** An interactive selector containing 16 recognized UK trade paints:
   *Dulux Trade, Farrow & Ball, Little Greene, Johnstone's Trade, Crown Trade, Zinsser, Mylands, Paint & Paper Library, Benjamin Moore, Tikkurila, Leyland Trade, Bedec, Sadolin, Sikkens, Osmo, Hammerite* — plus a custom text field for specialty coatings. Only selected paints appear on the website.
 - **Multi-Photo Upload with Auto-Compression:** Upload multiple photos straight from a smartphone camera or desktop. The built-in image processor automatically compresses file sizes in the browser before upload, ensuring lightning-fast website loading.
@@ -110,7 +109,7 @@ The portal is accessible at `/admin` and protected by a secure 4-digit PIN (defa
 - **Initial Placement:** Choose whether a new job appears at the **Top of list (#1)** or at the **Bottom of list**.
 
 #### B. Display Order Control (All Work & Individual Galleries)
-- **Gallery Category Tabs:** Filter the active list by **All Galleries**, **Interior**, **Exterior**, or **Wallpapering**.
+- **Gallery Category Tabs:** Filter the active list by **All Galleries**, **Interior**, or **Exterior**.
 - **Visual Position Badges:** Clearly displays each project's order (`#1`, `#2`, `#3`, etc.), with overall portfolio position indicators when filtered.
 - **One-Click Step Reordering:**
   - `▲` **Move Up:** Move job forward by one place.
