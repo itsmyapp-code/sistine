@@ -20,7 +20,7 @@ export default function ContactPage() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('https://formspree.io/f/xoevkgqv', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -32,7 +32,6 @@ export default function ContactPage() {
           email,
           service,
           message,
-          _subject: `New Decorating Inquiry from ${name} (${service})`,
         }),
       });
 
@@ -40,11 +39,7 @@ export default function ContactPage() {
         setSubmitted(true);
       } else {
         const data = await response.json();
-        if (data && data.errors) {
-          setErrorMessage(data.errors.map((err: any) => err.message).join(', '));
-        } else {
-          setErrorMessage('There was a problem submitting your form. Please try again or call us directly.');
-        }
+        setErrorMessage(data?.error || 'There was a problem submitting your form. Please try again or call us directly.');
       }
     } catch (err) {
       setErrorMessage('Network error submitting your form. Please call us directly on 07803 258507.');
