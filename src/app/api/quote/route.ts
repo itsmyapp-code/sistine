@@ -20,29 +20,26 @@ export async function POST(request: Request) {
     const token = process.env.MAILERLITE_API_KEY || DEFAULT_MAILERLITE_TOKEN;
     const groupId = process.env.MAILERLITE_GROUP_ID || DEFAULT_GROUP_ID;
 
-    // Send to MailerLite
+    // Forward to Formspree
     try {
-      await fetch('https://connect.mailerlite.com/api/subscribers', {
+      await fetch('https://formspree.io/f/mzedwzjr', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
         body: JSON.stringify({
+          name: data.fullName,
+          phone: data.phone || '',
           email: data.email,
-          fields: {
-            name: data.fullName,
-            phone: data.phone || '',
-            service: data.service || '',
-            message: data.description || '',
-            postcode: data.postcode || 'Dartmouth',
-          },
-          groups: [groupId],
+          service: data.service || '',
+          postcode: data.postcode || 'Dartmouth',
+          message: data.description || '',
+          _subject: `New Estimate Request from ${data.fullName} (${data.service || 'Decorating'})`,
         }),
       });
-    } catch (mlErr) {
-      console.warn('MailerLite sync in quote endpoint failed:', mlErr);
+    } catch (fsErr) {
+      console.warn('Formspree sync in quote endpoint failed:', fsErr);
     }
 
     return NextResponse.json({
