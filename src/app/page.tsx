@@ -122,7 +122,7 @@ export default function HomePage() {
                 Based in Dartmouth, Sistine Decorators provides professional interior and exterior painting services for homeowners, holiday cottages, and residential properties across Dartmouth and the wider South Hams.
               </p>
               <p>
-                We believe that good decorating is built on thorough preparation, attention to detail, and a tidy, respectful way of working in your home. Whether refreshing a single room or repainting an entire coastal facade, we deliver clean, lasting results.
+                We believe that good decorating is built on thorough preparation, attention to detail, and a tidy, respectful way of working in your home. Whether refreshing a single room, wallpapering a feature wall, or repainting an entire coastal facade, we deliver clean, lasting results.
               </p>
             </div>
           </div>
