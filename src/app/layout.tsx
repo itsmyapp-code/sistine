@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CookieBanner from "@/components/CookieBanner";
 import MobileStickyBar from "@/components/MobileStickyBar";
+import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import { BUSINESS_CONFIG } from "@/data/initialData";
 
 const inter = Inter({
@@ -20,6 +21,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Sistine Decorating",
   title: {
     default: "Sistine Decorating | Painters & Decorators Dartmouth, Devon",
     template: "%s | Sistine Decorating",
@@ -35,6 +37,21 @@ export const metadata: Metadata = {
   authors: [{ name: "Sistine Decorating" }],
   creator: "Sistine Decorating",
   publisher: "developer.itsmyapp.co.uk",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Sistine",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   openGraph: {
     title: "Sistine Decorating | Dartmouth & South Devon",
     description: "Quality residential painting and decorating services across Dartmouth and the wider South Hams.",
@@ -79,6 +96,7 @@ export default function RootLayout({
         <Footer />
         <CookieBanner />
         <MobileStickyBar />
+        <PwaInstallPrompt />
       </body>
     </html>
   );
