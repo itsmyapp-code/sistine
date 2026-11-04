@@ -8,7 +8,7 @@ export default function Footer() {
     <footer className="bg-slate-950 text-slate-300 border-t border-slate-800" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Footer</h2>
       
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto pt-12 pb-24 md:pb-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
           {/* Contact Details */}
@@ -132,11 +132,24 @@ export default function Footer() {
         {/* Bottom Sub-footer */}
         <div className="mt-6 pt-6 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 gap-4">
           <p>© {new Date().getFullYear()} {BUSINESS_CONFIG.name}, Dartmouth. All rights reserved.</p>
-          <div className="flex flex-wrap gap-4 sm:gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
             <Link href="/cookies" className="hover:text-white transition-colors">Cookies</Link>
             <Link href="/accessibility" className="hover:text-white transition-colors">Accessibility</Link>
+            <Link
+              href="/admin"
+              aria-label="Admin Portal"
+              title="Admin Portal"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/90 hover:bg-white p-0.5 shadow-sm opacity-60 hover:opacity-100 transition-all hover:scale-105"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/sistine_logo.jpg"
+                alt="Sistine Admin"
+                className="w-full h-full object-contain rounded-full"
+              />
+            </Link>
           </div>
         </div>
 
