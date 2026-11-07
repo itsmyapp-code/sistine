@@ -17,7 +17,7 @@
     "manufacturers": [
       "Zinsser"
     ],
-    "order": 1
+    "order": 2
   },
   {
     "id": "proj-1790507351977",
@@ -35,7 +35,7 @@
     ],
     "description": "Exterior jet washed and painted. \nWindows, facias and guttering all cleaned down with upvc antifungal cleaner.\nLooks brand new.\nCompleted and dry just before the rain came",
     "publishedAt": "2026-09-27",
-    "order": 2
+    "order": 3
   },
   {
     "id": "proj-1790507299171",
@@ -51,6 +51,6 @@
     ],
     "description": "Nice little job for a lovely new client. Was a pleasure to do..",
     "publishedAt": "2026-09-27",
-    "order": 3
+    "order": 4
   }
 ]
