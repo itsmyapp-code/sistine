@@ -4,6 +4,7 @@ import path from 'path';
 import projectsJson from '@/data/projects.json';
 import heroSlidesJson from '@/data/heroSlides.json';
 import testimonialsJson from '@/data/testimonials.json';
+import { ensureModernImageDataUrl } from '@/lib/serverImageOptimizer';
 
 const GITHUB_REPO = 'itsmyapp-code/sistine';
 const GITHUB_BRANCH = 'main';
@@ -53,7 +54,37 @@ export async function POST(request: Request) {
     }
 
     const relativeFilePath = FILE_MAP[type];
-    const formattedJson = JSON.stringify(data, null, 2);
+
+    // Ensure all uploaded images in projects or hero slides are converted to AVIF (with WebP fallback)
+    let normalizedData = data;
+    if (type === 'projects') {
+      normalizedData = await Promise.all(
+        data.map(async (proj: any) => {
+          const afterImage = await ensureModernImageDataUrl(proj.afterImage, 1600);
+          const beforeImage = await ensureModernImageDataUrl(proj.beforeImage, 1600);
+          const images = Array.isArray(proj.images)
+            ? await Promise.all(
+                proj.images.map((img: string) => ensureModernImageDataUrl(img, 1600))
+              )
+            : proj.images;
+          return {
+            ...proj,
+            afterImage,
+            beforeImage,
+            images,
+          };
+        })
+      );
+    } else if (type === 'hero') {
+      normalizedData = await Promise.all(
+        data.map(async (slide: any) => ({
+          ...slide,
+          url: await ensureModernImageDataUrl(slide.url, 2000),
+        }))
+      );
+    }
+
+    const formattedJson = JSON.stringify(normalizedData, null, 2);
 
     // 1. Try local filesystem write if in local environment
     let localSaved = false;

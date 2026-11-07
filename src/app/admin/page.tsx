@@ -39,6 +39,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import Logo from '@/components/Logo';
+import SmartImage from '@/components/SmartImage';
 import { Project, Testimonial, ProjectCategory, HeroSlide } from '@/types';
 import { UK_PAINT_MANUFACTURERS } from '@/data/initialData';
 import { 
@@ -56,8 +57,8 @@ import {
 
 const DEFAULT_PIN = '1234';
 
-async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promise<string> {
-  return new Promise((resolve, reject) => {
+async function compressImage(file: File, maxWidth = 1600, quality = 0.82): Promise<string> {
+  const canvasDataUrl: string = await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = (event) => {
@@ -81,12 +82,55 @@ async function compressImage(file: File, maxWidth = 1600, quality = 0.85): Promi
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
+
+        // 1. Try native client AVIF encoding first
+        const avifAttempt = canvas.toDataURL('image/avif', quality);
+        if (avifAttempt.startsWith('data:image/avif')) {
+          resolve(avifAttempt);
+          return;
+        }
+
+        // 2. Fallback to native client WebP encoding
+        const webpAttempt = canvas.toDataURL('image/webp', quality);
+        if (webpAttempt.startsWith('data:image/webp')) {
+          resolve(webpAttempt);
+          return;
+        }
+
+        // 3. Last-resort client canvas encoding before server Sharp conversion
         resolve(canvas.toDataURL('image/jpeg', quality));
       };
       img.onerror = (error) => reject(error);
     };
     reader.onerror = (error) => reject(error);
   });
+
+  // If client already produced AVIF, return immediately; otherwise ask server Sharp converter for AVIF (with WebP fallback)
+  if (canvasDataUrl.startsWith('data:image/avif')) {
+    return canvasDataUrl;
+  }
+
+  try {
+    const res = await fetch('/api/convert-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dataUrl: canvasDataUrl,
+        maxWidth,
+        quality,
+      }),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json?.dataUrl) {
+        return json.dataUrl;
+      }
+    }
+  } catch {
+    // Offline or network error: return client WebP fallback
+  }
+
+  return canvasDataUrl;
 }
 
 export default function AdminPage() {
@@ -1251,9 +1295,9 @@ export default function AdminPage() {
                 <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-slate-900 rounded-2xl bg-slate-50 hover:bg-slate-100/60 cursor-pointer transition-colors group">
                   <Upload className="w-6 h-6 text-slate-400 group-hover:text-slate-800 mb-1" />
                   <span className="text-xs font-semibold text-slate-700">
-                    {isCompressingProject ? 'Compressing Photos...' : 'Click to Add Photos'}
+                    {isCompressingProject ? 'Converting to AVIF / WebP...' : 'Click to Add Photos'}
                   </span>
-                  <span className="text-[11px] text-slate-400">Select multiple files from computer or phone</span>
+                  <span className="text-[11px] text-slate-400">Select multiple files — automatically converted to .avif / .webp</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -1272,8 +1316,7 @@ export default function AdminPage() {
                     <div className="grid grid-cols-3 gap-2.5">
                       {projectImages.map((img, idx) => (
                         <div key={idx} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-200 group bg-slate-100 shadow-xs">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={img} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                          <SmartImage useNativeImg src={img} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                           
                           {idx === 0 && (
                             <span className="absolute top-1 left-1 bg-amber-500 text-slate-950 text-[10px] font-bold px-2 py-0.5 rounded shadow">
@@ -1338,8 +1381,7 @@ export default function AdminPage() {
 
                     {projectBeforeImage ? (
                       <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-300 bg-slate-900 group">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={projectBeforeImage} alt="Before Preview" className="w-full h-full object-cover" />
+                        <SmartImage useNativeImg src={projectBeforeImage} alt="Before Preview" className="w-full h-full object-cover" />
                         <div className="absolute top-1.5 left-1.5 bg-black/80 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded">
                           Before
                         </div>
@@ -1383,8 +1425,7 @@ export default function AdminPage() {
                               }`}
                               title={`Select photo ${i + 1} as Before`}
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={img} alt={`Pic ${i + 1}`} className="w-full h-full object-cover" />
+                              <SmartImage useNativeImg src={img} alt={`Pic ${i + 1}`} className="w-full h-full object-cover" />
                             </button>
                           ))}
                         </div>
@@ -1409,8 +1450,7 @@ export default function AdminPage() {
 
                     {projectAfterImage ? (
                       <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-slate-300 bg-slate-900 group">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={projectAfterImage} alt="After Preview" className="w-full h-full object-cover" />
+                        <SmartImage useNativeImg src={projectAfterImage} alt="After Preview" className="w-full h-full object-cover" />
                         <div className="absolute top-1.5 left-1.5 bg-slate-950/80 text-white text-[10px] font-bold px-2 py-0.5 rounded">
                           After
                         </div>
@@ -1454,8 +1494,7 @@ export default function AdminPage() {
                               }`}
                               title={`Select photo ${i + 1} as After`}
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={img} alt={`Pic ${i + 1}`} className="w-full h-full object-cover" />
+                              <SmartImage useNativeImg src={img} alt={`Pic ${i + 1}`} className="w-full h-full object-cover" />
                             </button>
                           ))}
                         </div>
@@ -1764,8 +1803,7 @@ export default function AdminPage() {
                         {/* Project Details */}
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <div className="relative w-16 h-14 sm:w-20 sm:h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={p.afterImage || p.images?.[0]} alt={p.title} className="w-full h-full object-cover" />
+                            <SmartImage useNativeImg src={p.afterImage || p.images?.[0] || ''} alt={p.title} className="w-full h-full object-cover" />
                             <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-bold px-1 py-0.5 rounded leading-none">
                               {count}📷
                             </span>
@@ -1858,9 +1896,9 @@ export default function AdminPage() {
               <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 hover:border-slate-900 rounded-2xl bg-slate-50 hover:bg-slate-100/60 cursor-pointer transition-colors group">
                 <ImageIcon className="w-8 h-8 text-slate-400 group-hover:text-slate-800 mb-2" />
                 <span className="text-xs font-semibold text-slate-700">
-                  {isCompressingHero ? 'Optimizing Image...' : 'Click to Upload Hero Image'}
+                  {isCompressingHero ? 'Converting to AVIF / WebP...' : 'Click to Upload Hero Image'}
                 </span>
-                <span className="text-[11px] text-slate-400">JPG, PNG, or WebP</span>
+                <span className="text-[11px] text-slate-400">Auto-converted to .avif (with .webp fallback)</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -1921,8 +1959,7 @@ export default function AdminPage() {
                       {idx + 1}
                     </span>
                     <div className="relative w-24 h-16 rounded-xl overflow-hidden bg-slate-900 shrink-0 shadow-inner">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={slide.url} alt={slide.alt} className="w-full h-full object-cover" />
+                      <SmartImage useNativeImg src={slide.url} alt={slide.alt} className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-slate-900 line-clamp-1">{slide.alt}</p>

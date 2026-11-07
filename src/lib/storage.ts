@@ -49,7 +49,22 @@ export function getStoredHeroSlides(): HeroSlide[] {
       localStorage.setItem(HERO_SLIDES_STORAGE_KEY, JSON.stringify(INITIAL_HERO_SLIDES));
       return INITIAL_HERO_SLIDES;
     }
-    return JSON.parse(data);
+    const parsed: HeroSlide[] = JSON.parse(data);
+    let migrated = false;
+    const upgraded = parsed.map((slide) => {
+      if (slide.url && (slide.url.startsWith('data:image/jpeg') || slide.url.endsWith('.jpg'))) {
+        const match = INITIAL_HERO_SLIDES.find((s) => s.id === slide.id);
+        if (match && match.url !== slide.url) {
+          migrated = true;
+          return { ...slide, url: match.url };
+        }
+      }
+      return slide;
+    });
+    if (migrated) {
+      localStorage.setItem(HERO_SLIDES_STORAGE_KEY, JSON.stringify(upgraded));
+    }
+    return upgraded;
   } catch (e) {
     console.error('Error reading hero slides from storage', e);
     return INITIAL_HERO_SLIDES;
@@ -77,10 +92,33 @@ export function getStoredProjects(): Project[] {
       return INITIAL_PROJECTS;
     }
     const parsed: Project[] = JSON.parse(data);
-    if (parsed.some((p) => typeof p.order === 'number')) {
-      return [...parsed].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+    let migrated = false;
+    const upgraded = parsed.map((proj) => {
+      const hasLegacyJpeg =
+        proj.afterImage?.startsWith('data:image/jpeg') ||
+        proj.beforeImage?.startsWith('data:image/jpeg') ||
+        proj.images?.some((img) => img.startsWith('data:image/jpeg'));
+      if (hasLegacyJpeg) {
+        const match = INITIAL_PROJECTS.find((p) => p.id === proj.id);
+        if (match) {
+          migrated = true;
+          return {
+            ...proj,
+            afterImage: proj.afterImage?.startsWith('data:image/jpeg') ? match.afterImage : proj.afterImage,
+            beforeImage: proj.beforeImage?.startsWith('data:image/jpeg') ? match.beforeImage : proj.beforeImage,
+            images: proj.images?.every((img) => img.startsWith('data:image/jpeg')) ? match.images : proj.images,
+          };
+        }
+      }
+      return proj;
+    });
+    if (migrated) {
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(upgraded));
     }
-    return parsed;
+    if (upgraded.some((p) => typeof p.order === 'number')) {
+      return [...upgraded].sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+    }
+    return upgraded;
   } catch (e) {
     console.error('Error reading projects from storage', e);
     return INITIAL_PROJECTS;

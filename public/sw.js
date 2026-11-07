@@ -1,5 +1,5 @@
 // Sistine Decorating PWA Service Worker
-const CACHE_VERSION = 'sistine-v1.0.0';
+const CACHE_VERSION = 'sistine-v1.1.0';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
 
@@ -102,6 +102,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.jpeg') ||
     url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.avif') ||
     url.pathname.endsWith('.webp') ||
     url.pathname.endsWith('.woff2');
 

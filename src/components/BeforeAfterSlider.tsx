@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { ChevronsLeftRight } from 'lucide-react';
+import SmartImage from './SmartImage';
 
 interface BeforeAfterSliderProps {
   beforeImage: string;
@@ -82,8 +83,8 @@ export default function BeforeAfterSlider({
     >
       {/* 1. Base Layer: AFTER Image */}
       <div className="absolute inset-0 w-full h-full">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <SmartImage
+          useNativeImg
           src={afterImage}
           alt={`${alt} - ${afterLabel}`}
           className="w-full h-full object-cover pointer-events-none"
@@ -102,8 +103,8 @@ export default function BeforeAfterSlider({
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <SmartImage
+          useNativeImg
           src={beforeImage}
           alt={`${alt} - ${beforeLabel}`}
           className="w-full h-full object-cover pointer-events-none"

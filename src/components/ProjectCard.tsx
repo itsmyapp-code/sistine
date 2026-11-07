@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import SmartImage from './SmartImage';
 import { MapPin, CheckCircle2, ArrowRight, Sliders, Image as ImageIcon } from 'lucide-react';
 import { Project } from '@/types';
 import BeforeAfterSlider from './BeforeAfterSlider';
@@ -31,7 +31,7 @@ export default function ProjectCard({ project, onOpenSlider }: ProjectCardProps)
           </div>
         ) : (
           coverImage && (
-            <Image
+            <SmartImage
               src={coverImage}
               alt={project.title}
               fill

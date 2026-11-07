@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import SmartImage from '@/components/SmartImage';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { MapPin, ArrowRight, Layers, Camera, ZoomIn } from 'lucide-react';
 import { Project } from '@/types';
@@ -115,7 +115,7 @@ function ProjectsContent() {
               >
                 <div className="relative aspect-[4/3] w-full bg-slate-900 overflow-hidden">
                   {coverImg && (
-                    <Image
+                    <SmartImage
                       src={coverImg}
                       alt={project.title}
                       fill

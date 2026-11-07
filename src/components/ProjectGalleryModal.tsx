@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
+import SmartImage from './SmartImage';
 import { X, ChevronLeft, ChevronRight, Layers, ZoomIn, ZoomOut, RotateCcw, Sliders, Image as ImageIcon, Paintbrush } from 'lucide-react';
 import { Project } from '@/types';
 import BeforeAfterSlider from './BeforeAfterSlider';
@@ -384,7 +384,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
                 }}
               >
                 {allImages.length > 0 && (
-                  <Image
+                  <SmartImage
                     src={allImages[currentIdx]}
                     alt={`${project.title} photo ${currentIdx + 1}`}
                     fill
@@ -527,8 +527,7 @@ export default function ProjectGalleryModal({ project, onClose }: ProjectGallery
                     }`}
                     aria-label={`View photo ${idx + 1}`}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    <SmartImage useNativeImg src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

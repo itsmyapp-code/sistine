@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import SmartImage from './SmartImage';
 import { ArrowRight, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BUSINESS_CONFIG } from '@/data/initialData';
 
@@ -65,7 +65,7 @@ export default function HeroCarousel() {
             }`}
           >
             <div className={`relative w-full h-full ${isActive ? 'animate-ken-burns' : ''}`}>
-              <Image
+              <SmartImage
                 src={slide.url}
                 alt={slide.alt}
                 fill
